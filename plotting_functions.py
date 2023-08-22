@@ -259,6 +259,12 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     print("rfield_init values", rfield_init)
     print("rfield_uninit values", rfield_uninit)
 
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # set up the proj
+    proj = ccrs.PlateCarree()
+
     # Extract the lats and lons for the azores grid
     azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
     azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
@@ -302,60 +308,115 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
         print("Error: region not found")
         sys.exit()
 
-    # Set the font size for the plots
-    plt.rcParams.update({'font.size': 12})
+    # Set up the significance threshold
+    # if p_sig is 0.05, then sig_threshold is 95%
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # if observed_data is not None:
+    # Extract the first and last years
+    if observed_data is not None:
+        first_year = observed_data.time.dt.year.values[0]
+        last_year = observed_data.time.dt.year.values[-1]
+    else:
+        first_year = None
+        last_year = None
+
+    # If ensemble_members_count is not None
+    if ensemble_members_count_init is not None:
+        total_no_members_init = sum(ensemble_members_count_init.values())
+    else:
+        total_no_members = None
+
+    # If ensemble_members_count is not None
+    if ensemble_members_count_uninit is not None:
+        total_no_members_uninit = sum(ensemble_members_count_uninit.values())
+    else:
+        total_no_members = None
+
+
+    # create a list of the rfield_init and rfield_uninit to be plotted
+    rfield_list = [rfield_init, rfield_uninit]
+
+    # same for the pfield_init and pfield_uninit
+    pfield_list = [pfield_init, pfield_uninit]
+
 
     # Set up the figure as two subplots (1 row, 2 columns)
-    fig, axs = plt.subplots(1, 2, figsize=(20, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(18, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
 
-    # Set up the first subplot
-    ax1 = axs[0]
-    # ax2 = axs[1]
+    # flatten the axs array
+    axs = axs.flatten()
 
-    # Set up the projection
-    ax1 = plt.axes(projection=ccrs.PlateCarree())
-    # ax2 = plt.axes(projection=ccrs.PlateCarree())
+    # Create a list to store the contourf objects
+    cf_list = []
 
-    # Add coastlines
-    ax1.coastlines()
-    # ax2.coastlines()
+    for i, rfield in enumerate(rfield_list):
 
-    # Add green lines outlining the Azores and Iceland grids
-    ax1.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
-    ax1.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+        # print the rfield
+        rfield = rfield_list[i]
 
-    # Same for the second subplot
-    # ax2.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
-    # ax2.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+        # print the pfield
+        pfield = pfield_list[i]
 
-    # Set up the contour levels
-    # Contour levels
-    clevs = np.arange(-1, 1.1, 0.1)
-    # Contour levels for p-values
-    clevs_p = np.arange(0, 1.1, 0.1)
+        # Print the r and p fields
+        print("plotting rfield", rfield)
+        print("plotting pfield", pfield)
 
-    # Plot the filled contours on the first subplot
-    cf1 = ax1.contourf(lons, lats, rfield_init, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
-    # Plot the filled contours on the second subplot
-    # cf2 = ax2.contourf(lons, lats, rfield_uninit, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
+        # set up the axes
+        ax = axs[i]
 
-    # Replace values in pfield that are greater than 0.05 with nan
-    pfield_init[pfield_init > p_sig] = np.nan
-    pfield_uninit[pfield_uninit > p_sig] = np.nan
+        # Add coastlines
+        ax.coastlines()
+        
+        # Add green lines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
 
-    # Add stippling where rfield is significantly different from zero
-    ax1.contourf(lons, lats, pfield_init, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
-    # ax2.contourf(lons, lats, pfield_uninit, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
+        # add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
 
-    # Add a colorbar for the first subplot
-    cbar1 = plt.colorbar(cf1, orientation='horizontal', pad=0.05, aspect=50, ax=ax1)
-    # Add a colorbar for the second subplot
-    # cbar2 = plt.colorbar(cf2, orientation='horizontal', pad=0.05, aspect=50, ax=ax2)
+        # replace values in pfield that are greater than 0.05 with nan
+        pfield[pfield > p_sig] = np.nan
 
-    # Set the label for the first subplot
-    cbar1.set_label('correlation coefficients')
-    # Set the label for the second subplot
-    # cbar2.set_label('correlation coefficients')
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+
+        # if i == 0:
+        # add textbox
+        if i == 0:
+            # Add a textbox for the first subplot
+            # in the top left
+            # with 'dcppA' in it
+            ax.text(0.05, 0.95, 'dcppA', transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+
+            # Add another textbox for the first subplot
+            # in the bottom right
+            # for the number of ensemble members
+            ax.text(0.95, 0.05, f"N = {total_no_members_init}", transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        elif i == 1:
+            # Add a textbox for the second subplot
+            # in the top left
+            # with 'historical' in it
+            ax.text(0.05, 0.95, 'historical', transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+
+            # Add another textbox for the second subplot
+            # in the bottom right
+            # for the number of ensemble members
+            ax.text(0.95, 0.05, f"N = {total_no_members_uninit}", transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        else:
+            print("Error: subplot not found")
+
+        # Append the contourf object to the list
+        cf_list.append(cf)
+
+    # Add colorbar
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('correlation coefficients')
 
     # extract the model name from the list
     # given as ['model']
@@ -374,51 +435,6 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
         print("Error: model name not found")
         sys.exit()
 
-    # if observed_data is not None:
-    #     # Extract the first and last years
-    if observed_data is not None:
-        first_year = observed_data.time.dt.year.values[0]
-        last_year = observed_data.time.dt.year.values[-1]
-    else:
-        first_year = None
-        last_year = None
-
-    # Set up the significance threshold
-    # if p_sig is 0.05, then sig_threshold is 95%
-    sig_threshold = int((1 - p_sig) * 100)
-
-    # If ensemble_members_count is not None
-    if ensemble_members_count_init is not None:
-        total_no_members_init = sum(ensemble_members_count_init.values())
-    else:
-        total_no_members = None
-
-    # If ensemble_members_count is not None
-    if ensemble_members_count_uninit is not None:
-        total_no_members_uninit = sum(ensemble_members_count_uninit.values())
-    else:
-        total_no_members = None
-
-    # Add a textbox for the first subplot
-    # in the top left
-    # with 'dcppA' in it
-    ax1.text(0.05, 0.95, 'dcppA', transform=ax1.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
-
-    # Add another textbox for the first subplot
-    # in the bottom right
-    # for the number of ensemble members
-    ax1.text(0.95, 0.05, f"N = {total_no_members_init}", transform=ax1.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
-
-    # Add a textbox for the second subplot
-    # in the top left
-    # with 'historical' in it
-    ax2.text(0.05, 0.95, 'historical', transform=ax2.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
-
-    # Add another textbox for the second subplot
-    # in the bottom right
-    # for the number of ensemble members
-    ax2.text(0.95, 0.05, f"N = {total_no_members_uninit}", transform=ax2.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
-
     # Set up the title
     title = f"{model} {variable} {region} {season} {forecast_range} {first_year}-{last_year} correlation coefficients, p < {p_sig} ({sig_threshold}%)"
 
@@ -426,7 +442,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     fig.suptitle(title, fontsize=12)
 
     # set up the figure name
-    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_{total_no_members_init}_{total_no_members_uninit}_{p_sig}_correlation_coefficient_differences_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_{total_no_members_init}_{total_no_members_uninit}_{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
 
     # Set up the figure path
     fig_path = os.path.join(plots_dir, fig_name)
@@ -439,6 +455,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
 # SUbplots function
 # Function for plotting the results for all of the models as 12 subplots
+# FIXME: get this working for model differences
 def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig = 0.05, experiment=None, observed_data=None):
     """Plot the spatial correlation coefficients and p-values for all models.
 
