@@ -260,6 +260,104 @@ def extract_historical_data(historical_data, variable):
     # Return the data
     return variable_data_by_model, historical_time_by_model
 
+# Function used to process the dcpp data
+def process_data(datasets_by_model, variable):
+    """Process the data.
+    
+    This function takes a dictionary of datasets grouped by models
+    and processes the data for each dataset.
+    
+    Args:
+        datasets_by_model: A dictionary of datasets grouped by models.
+        variable: The variable to load, extracted from the command line.
+        
+    Returns:
+        variable_data_by_model: the data extracted for the variable for each model.
+        model_time_by_model: the model time extracted from each model for each model.
+    """
+    
+    #print(f"Dataset type: {type(datasets_by_model)}")
+
+    def process_model_dataset(dataset, variable):
+        """Process a single dataset.
+        
+        This function takes a single dataset and processes the data.
+        
+        Args:
+            dataset: A single dataset.
+            variable: The variable to load, extracted from the command line.
+            
+        Returns:
+            variable_data: the extracted variable data for a single model.
+            model_time: the extracted time data for a single model.
+        """
+        
+        if variable == "psl":
+            # Extract the variable.
+            # Using try and except to catch any errors.
+            try:
+                # Extract the variable.
+                variable_data = dataset["psl"]
+
+                # #print the values of the variable data
+                # #print("Variable data values: ", variable_data.values)
+            except:
+                #print("Error converting from Pa to hPa")
+                sys.exit()
+        elif variable == "tas":
+            # Extract the variable.
+            variable_data = dataset["tas"]
+        elif variable == "rsds":
+            # Extract the variable.
+            variable_data = dataset["rsds"]
+        elif variable == "sfcWind":
+            # Extract the variable.
+            variable_data = dataset["sfcWind"]
+        else:
+            #print("Variable " + variable + " not recognised")
+            sys.exit()
+
+        # If variable_data is empty, #print a warning and exit the program.
+        if variable_data is None:
+            #print("Variable " + variable + " not found in dataset")
+            sys.exit()
+
+        # Extract the time dimension.
+        model_time = dataset["time"].values
+        # Set the type for the time dimension.
+        model_time = model_time.astype("datetime64[Y]")
+
+        # If model_time is empty, #print a warning and exit the program.
+        if model_time is None:
+            #print("Time not found in dataset")
+            sys.exit()
+
+        return variable_data, model_time
+    
+    # Create empty dictionaries to store the processed data.
+    variable_data_by_model = {}
+    model_time_by_model = {}
+    for model, datasets in datasets_by_model.items():
+        try:
+            # Create empty lists to store the processed data.
+            variable_data_by_model[model] = []
+            model_time_by_model[model] = []
+            # Loop over the datasets for this model.
+            for dataset in datasets:
+                # Process the dataset.
+                variable_data, model_time = process_model_dataset(dataset, variable)
+                # Append the processed data to the lists.
+                variable_data_by_model[model].append(variable_data)
+                model_time_by_model[model].append(model_time)
+        except Exception as e:
+            #print(f"Error processing dataset for model {model}: {e}")
+            #print("Exiting the program")
+            sys.exit()
+
+    # Return the processed data.
+    return variable_data_by_model, model_time_by_model
+
+
 # Function to constrain the years of the historical data
 # Define a function to constrain the years to the years that are in all of the model members
 def constrain_years_processed_hist(model_data, models):
