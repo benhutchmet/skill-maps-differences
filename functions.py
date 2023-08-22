@@ -907,8 +907,8 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # --- Although will already be in DJFM format, so don't need to do this ---
         regridded_obs_dataset_region_season = select_season(obs_dataset, season)
 
-        # Print the dimensions of the regridded and selected region dataset
-        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+        # # Print the dimensions of the regridded and selected region dataset
+        # print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
 
         # # Check for NaN values in the observations dataset
         # print("Checking for NaN values in regridded_obs_dataset_region_season")
