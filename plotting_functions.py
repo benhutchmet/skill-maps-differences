@@ -275,11 +275,11 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     # Set up the lats and lons
     # if the region is global
     if region == 'global':
-        lats = obs.lat
+        lats = observed_data.lat
         lons = lons_converted
     # if the region is not global
     elif region == 'north-atlantic':
-        lats = obs.lat
+        lats = observed_data.lat
         lons = lons_converted
     else:
         print("Error: region not found")
@@ -330,15 +330,25 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     ax1.contourf(lons, lats, pfield_init, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
     ax2.contourf(lons, lats, pfield_uninit, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
-    # Add a constant colorbar for both subplots
-    cbar = plt.colorbar(cf1, orientation='horizontal', pad=0.05, aspect=50, ax=axs[:], shrink=0.8)
-    cbar.set_label('correlation coefficients')
+    # Add a colorbar for the first subplot
+    cbar1 = plt.colorbar(cf1, orientation='horizontal', pad=0.05, aspect=50, ax=ax1)
+    # Add a colorbar for the second subplot
+    cbar2 = plt.colorbar(cf2, orientation='horizontal', pad=0.05, aspect=50, ax=ax2)
+
+    # Set the label for the first subplot
+    cbar1.set_label('correlation coefficients')
+    # Set the label for the second subplot
+    cbar2.set_label('correlation coefficients')
 
     # extract the model name from the list
     # given as ['model']
     # we only want the model name
     # if the length of the list is 1
     # then the model name is the first element
+    # set models as init_models
+    model = init_models
+
+    # if the length of the list is 1
     if len(model) == 1:
         model = model[0]
     elif len(model) > 1:
