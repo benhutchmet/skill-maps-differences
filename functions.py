@@ -536,8 +536,8 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
         # Print the dimensions of the observed and model data
-        # print("observed data shape", np.shape(observed_data))
-        # print("model data shape", np.shape(model_data))
+        print("observed data shape", np.shape(observed_data))
+        print("model data shape", np.shape(model_data))
 
         # Loop over the latitudes and longitudes
         for y in range(len(obs_lat)):
@@ -554,8 +554,8 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 r, p = stats.pearsonr(obs, mod)
 
                 # If the correlation coefficient is negative, set the p-value to NaN
-                if r < 0:
-                    p = np.nan
+                # if r < 0:
+                #     p = np.nan
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
@@ -564,6 +564,12 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         # to 3 decimal places
         print(f"Correlation coefficients range from {rfield.min():.3f} to {rfield.max():.3f}")
         print(f"P-values range from {pfield.min():.3f} to {pfield.max():.3f}")
+
+        # print the correlation coefficients and p-values
+        # print("correlation coefficients", rfield)
+        print("p-values", pfield)
+        # print shape of pfield
+        print("shape of pfield", np.shape(pfield))
 
         # Return the correlation coefficients and p-values
         return rfield, pfield
@@ -688,7 +694,6 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     obs_lons_converted = obs_lons_converted + 180
 
     # For the model lons
-    # FIXME: lon is not defined here
     lons_converted = np.where(lon > 180, lon - 360, lon)
     # # add 180 to the lons_converted
     lons_converted = lons_converted + 180
@@ -784,18 +789,29 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
     # Calculate the differences between the initialized and uninitialized data
     rfield_diff = rfield_init - rfield_uninit
 
+    # print the shapes of the rfield_init and rfield_uninit arrays
+    print("rfield_init shape", np.shape(rfield_init))
+    print("rfield_uninit shape", np.shape(rfield_uninit))
+
     # Calculate the p-values for the differences between the initialized and uninitialized data
-    # First flatten the pfield_init and pfield_uninit arrays
-    pfield_init_flat = pfield_init.flatten()
-    pfield_uninit_flat = pfield_uninit.flatten()
+    # Set up an empty array for the t-statistic
+    t_stat = np.empty([len(obs_lat), len(obs_lon)])
+    p_values = np.empty([len(obs_lat), len(obs_lon)])
 
-    # Then calculate the p-values for the differences between the initialized and uninitialized data
-    # Using a two tailed t-test
-    t_stat, p_values = stats.ttest_ind(pfield_init_flat, pfield_uninit_flat, axis=0, equal_var=False)
+    # Loop over the latitudes and longitudes
+    for y in range(len(obs_lat)):
+        for x in range(len(obs_lon)):
+            # set up the model data
+            mod_init = init_model_data[:, y, x]
+            mod_uninit = uninit_model_data[:, y, x]
 
-    # Reshape the p-values array
-    # To the same shape as the rfield_diff array
-    p_values = p_values.reshape(rfield_diff.shape)
+            # Calculate the correlation coefficient and p-value
+            t_stat[y, x], p_values[y, x] = stats.ttest_ind(mod_init, mod_uninit, equal_var=False)
+
+    # Print the range of the correlation coefficients and p-values
+    # to 3 decimal places
+    print(f"t-statistic range from {t_stat.min():.3f} to {t_stat.max():.3f}")
+    print(f"P-values range from {p_values.min():.3f} to {p_values.max():.3f}")
 
     # Identify the regions where the correlation improvements are statistically significant
     # at the 95% confidence level
@@ -867,6 +883,11 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
     obs_lons_converted = obs_lons_converted + 180
 
     # For the model lons
+    # FIXME: lon is not defined here
+    # Define lon in this case as the dcpp_lon
+    # the dcpp lon and historical lon are the same
+    lon = dcpp_lon
+    # now set up the converted lons
     lons_converted = np.where(lon > 180, lon - 360, lon)
     # # add 180 to the lons_converted
     lons_converted = lons_converted + 180
