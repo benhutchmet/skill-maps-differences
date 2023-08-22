@@ -738,8 +738,8 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # variable extracted already
     # Convert both the observed and model data to numpy arrays
-    observed_data_array = observed_data.values / 100
-    ensemble_mean_array = ensemble_mean.values / 100
+    observed_data_array = observed_data.values
+    ensemble_mean_array = ensemble_mean.values
 
     # Print the values and shapes of the observed and model data
     # print("observed data shape", np.shape(observed_data_array))
