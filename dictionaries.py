@@ -1,7 +1,7 @@
 # python dictionaries to be used in python/functions.py
 
 # define the base directory where the data is stored
-base_dir = "/home/users/benhutch/skill-maps-processed-data"
+dcpp_base_dir = "/home/users/benhutch/skill-maps-processed-data"
 
 # define the directory where the plots will be saved
 plots_dir = base_dir + "/plots"
