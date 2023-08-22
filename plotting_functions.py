@@ -242,6 +242,23 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
             ensemble_members_count_uninit = fnc.calculate_spatial_correlations(observed_data,
                                                                                 uninit_model_data, uninit_models,
                                                                                     variable)
+
+    # Print the types of the rfield_init and rfield_uninit
+    print("rfield_init type", type(rfield_init))
+    print("rfield_uninit type", type(rfield_uninit))
+
+    # print the types of the pfield_init and pfield_uninit
+    print("pfield_init type", type(pfield_init))
+    print("pfield_uninit type", type(pfield_uninit))
+
+    # print the shapes of the rfield_init and rfield_uninit
+    print("rfield_init shape", rfield_init.shape)
+    print("rfield_uninit shape", rfield_uninit.shape)
+
+    # print the values of the rfield_init and rfield_uninit
+    print("rfield_init values", rfield_init)
+    print("rfield_uninit values", rfield_uninit)
+
     # Extract the lats and lons for the azores grid
     azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
     azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
@@ -293,23 +310,23 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
     # Set up the first subplot
     ax1 = axs[0]
-    ax2 = axs[1]
+    # ax2 = axs[1]
 
     # Set up the projection
     ax1 = plt.axes(projection=ccrs.PlateCarree())
-    ax2 = plt.axes(projection=ccrs.PlateCarree())
+    # ax2 = plt.axes(projection=ccrs.PlateCarree())
 
     # Add coastlines
     ax1.coastlines()
-    ax2.coastlines()
+    # ax2.coastlines()
 
     # Add green lines outlining the Azores and Iceland grids
     ax1.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
     ax1.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
 
     # Same for the second subplot
-    ax2.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
-    ax2.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+    # ax2.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
+    # ax2.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=ccrs.PlateCarree())
 
     # Set up the contour levels
     # Contour levels
@@ -320,7 +337,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     # Plot the filled contours on the first subplot
     cf1 = ax1.contourf(lons, lats, rfield_init, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
     # Plot the filled contours on the second subplot
-    cf2 = ax2.contourf(lons, lats, rfield_uninit, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
+    # cf2 = ax2.contourf(lons, lats, rfield_uninit, clevs, cmap='RdBu_r', transform=ccrs.PlateCarree())
 
     # Replace values in pfield that are greater than 0.05 with nan
     pfield_init[pfield_init > p_sig] = np.nan
@@ -328,17 +345,17 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
     # Add stippling where rfield is significantly different from zero
     ax1.contourf(lons, lats, pfield_init, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
-    ax2.contourf(lons, lats, pfield_uninit, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
+    # ax2.contourf(lons, lats, pfield_uninit, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
     # Add a colorbar for the first subplot
     cbar1 = plt.colorbar(cf1, orientation='horizontal', pad=0.05, aspect=50, ax=ax1)
     # Add a colorbar for the second subplot
-    cbar2 = plt.colorbar(cf2, orientation='horizontal', pad=0.05, aspect=50, ax=ax2)
+    # cbar2 = plt.colorbar(cf2, orientation='horizontal', pad=0.05, aspect=50, ax=ax2)
 
     # Set the label for the first subplot
     cbar1.set_label('correlation coefficients')
     # Set the label for the second subplot
-    cbar2.set_label('correlation coefficients')
+    # cbar2.set_label('correlation coefficients')
 
     # extract the model name from the list
     # given as ['model']
@@ -420,3 +437,238 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     # Show the figure
     plt.show()
 
+# SUbplots function
+# Function for plotting the results for all of the models as 12 subplots
+def plot_correlations_subplots(models, obs, variable_data, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig = 0.05, experiment=None, observed_data=None):
+    """Plot the spatial correlation coefficients and p-values for all models.
+
+    This function plots the spatial correlation coefficients and p-values
+    for all models in the dictionaries.models list for a given variable,
+    region, season and forecast range.
+
+    Parameters
+    ----------
+    models : List
+        List of models.
+    obs : str
+        Observed dataset.
+    variable_data : dict
+        Variable data for each model.
+    region : str
+        Region.
+    season : str
+        Season.
+    forecast_range : str
+        Forecast range.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    azores_grid : array
+        Array of longitudes and latitudes for the Azores region.
+    iceland_grid : array
+        Array of longitudes and latitudes for the Iceland region.
+    uk_n_box : array
+        Array of longitudes and latitudes for the northern UK index box.
+    uk_s_box : array
+        Array of longitudes and latitudes for the southern UK index box.
+    p_sig : float, optional
+        Significance threshold. The default is 0.05.
+    experiment : str, optional
+        Experiment. The default is None.
+    observed_data : xarray.Dataset, optional
+        Observed data. The default is None.
+    """
+
+    # Set the font size for the plots
+    plt.rcParams.update({'font.size': 12})
+
+    # Set the projection
+    proj = ccrs.PlateCarree()
+
+    # Set up the first and last years
+    if observed_data is not None:
+        first_year = observed_data.time.dt.year.values[0]
+        last_year = observed_data.time.dt.year.values[-1]
+    else:
+        first_year = None
+        last_year = None
+    
+    # Set up the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Set up the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+    
+    # Set up the lats and lons for the northern UK index box
+    uk_n_lon1, uk_n_lon2 = uk_n_box['lon1'], uk_n_box['lon2']
+    uk_n_lat1, uk_n_lat2 = uk_n_box['lat1'], uk_n_box['lat2']
+
+    # Set up the lats and lons for the southern UK index box
+    uk_s_lon1, uk_s_lon2 = uk_s_box['lon1'], uk_s_box['lon2']
+    uk_s_lat1, uk_s_lat2 = uk_s_box['lat1'], uk_s_box['lat2']
+
+    # subtract 180 from all of the azores and iceland lons
+    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+    # subtract 180 from all of the uk lons
+    uk_n_lon1, uk_n_lon2 = uk_n_lon1 - 180, uk_n_lon2 - 180
+    uk_s_lon1, uk_s_lon2 = uk_s_lon1 - 180, uk_s_lon2 - 180
+
+    # Count the number of models available
+    nmodels = len(models)
+
+    # Set the figure size and subplot parameters
+    if nmodels == 8:
+        fig, axs = plt.subplots(nrows=3, ncols=3, figsize=(18, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Remove the last subplot
+        axs[-1, -1].remove()
+        # Set up where to plot the title
+        title_index = 1
+    elif nmodels == 10:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # remove the last subplot
+        axs[-1, -1].remove()
+        # remove the second last subplot
+        axs[-1, -2].remove()
+        # Set up where to plot the title
+        title_index = 1
+    elif nmodels == 11:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        axs[-1, -1].remove()
+        # Set up where to plot the title
+        title_index = 1
+    elif nmodels == 12:
+        fig, axs = plt.subplots(nrows=4, ncols=3, figsize=(18, 16), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+        # Set up where to plot the title
+        title_index = 1
+    else:
+        raise ValueError(f"Invalid number of models: {nmodels}")
+    
+    # Set up the significance threshold
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+    
+    # Flatten the axs array
+    axs = axs.flatten()
+
+    # Create a list to store the contourf objects
+    cf_list = []
+    
+    # Loop over the models
+    for i, model in enumerate(models):
+        
+        # #print the model name
+        #print("Processing model:", model)
+    
+        # Convert the model to a single index list
+        model = [model]
+    
+        # Calculate the spatial correlations for the model
+        rfield, pfield, obs_lons_converted, lons_converted, observed_data, ensemble_mean, ensemble_members_count = calculate_spatial_correlations(obs, variable_data, model, variable)
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
+        # Set up the lats and lons
+        # if the region is global
+        if region == 'global':
+            lats = obs.lat
+            lons = lons_converted
+        # if the region is not global
+        elif region == 'north-atlantic':
+            lats = obs.lat
+            lons = lons_converted
+        else:
+            #print("Error: region not found")
+            sys.exit()
+
+        # Set up the axes
+        ax = axs[i]
+
+        # Add coastlines
+        ax.coastlines()
+    
+        # Add gridlines with labels for the latitude and longitude
+        # gl = ax.gridlines(crs=proj, draw_labels=False, linewidth=2, color='gray', alpha=0.5, linestyle='--')
+        # gl.top_labels = False
+        # gl.right_labels = False
+        # gl.xlabel_style = {'size': 12}
+        # gl.ylabel_style = {'size': 12}
+    
+        # Add green lines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+        # Add green lines outlining the northern and southern UK index boxes
+        ax.plot([uk_n_lon1, uk_n_lon2, uk_n_lon2, uk_n_lon1, uk_n_lon1], [uk_n_lat1, uk_n_lat1, uk_n_lat2, uk_n_lat2, uk_n_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([uk_s_lon1, uk_s_lon2, uk_s_lon2, uk_s_lon1, uk_s_lon1], [uk_s_lat1, uk_s_lat1, uk_s_lat2, uk_s_lat2, uk_s_lat1], color='green', linewidth=2, transform=proj)
+    
+        # Add filled contours
+        # Contour levels
+        clevs = np.arange(-1, 1.1, 0.1)
+        # Contour levels for p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons, lats, rfield, clevs, cmap='RdBu_r', transform=proj)
+
+        # replace values in pfield that are greater than 0.01 with nan
+        pfield[pfield > p_sig] = np.nan
+    
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=proj)
+    
+        # Add title
+        # ax.set_title(f"{model} {variable} {region} {season} {forecast_range} Correlation Coefficients")
+    
+        # extract the model name from the list
+        if len(model) == 1:
+            model = model[0]
+        elif len(model) > 1:
+            model = "all_models"
+        else :
+            #print("Error: model name not found")
+            sys.exit()
+    
+        # Add textbox with model name
+        ax.text(0.05, 0.95, model, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbook with the number of ensemble members
+        total_no_members = sum(ensemble_members_count.values())
+        # Include this textbox in the bottom right corner
+        ax.text(0.95, 0.05, f"N = {total_no_members}", transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+    
+        # Add the contourf object to the list
+        cf_list.append(cf)
+
+        # If this is the centre subplot on the first row, set the title for the figure
+        if i == title_index:
+            # Add title
+            ax.set_title(f"{variable} {region} {season} years {forecast_range} {experiment} {first_year}-{last_year} correlation coefficients, p < {p_sig} ({sig_threshold}%)", fontsize=12)
+    
+    # Create a single colorbar for all of the subplots
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('Correlation Coefficient')
+    
+    # Specify a tight layout
+    # plt.tight_layout()
+
+    # if experiment is not None:
+    if experiment is not None:
+        fig_name = f"{variable}_{region}_{season}_{forecast_range}_{experiment}_{first_year}-{last_year}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+    else:
+        # set up the path for saving the figure
+        fig_name = f"{variable}_{region}_{season}_{forecast_range}_{first_year}_{last_year}_sig-{p_sig}_correlation_coefficients_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # # Adjust the vertical spacing between the plots
+    # plt.subplots_adjust(hspace=0.1)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+    
+    # Show the figure
+    plt.show()
