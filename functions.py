@@ -95,6 +95,81 @@ def load_processed_historical_data(base_dir, models, variable, region, forecast_
     # Return the historical data dictionary
     return historical_data
 
+# Function to load the processed dcpp data
+def load_data(base_directory, models, variable, region, forecast_range, season):
+    """Load the data from the base directory into a dictionary of datasets.
+    
+    This function takes a base directory and a list of models and loads
+    all of the individual ensemble members into a dictionary of datasets
+    grouped by models.
+    
+    Args:
+        base_directory: The base directory where the data is stored.
+        models: A list of models to load.
+        variable: The variable to load, extracted from the command line.
+        region: The region to load, extracted from the command line.
+        forecast_range: The forecast range to load, extracted from the command line.
+        season: The season to load, extracted from the command line.
+        
+    Returns:
+        A dictionary of datasets grouped by models.
+    """
+    
+    # Create an empty dictionary to store the datasets.
+    datasets_by_model = {}
+    
+    # Loop over the models.
+    for model in models:
+        
+        # Create an empty list to store the datasets for this model.
+        datasets_by_model[model] = []
+        
+        # create the path to the files for this model
+        files_path = base_directory + "/" + variable + "/" + model + "/" + region + "/" + f"years_{forecast_range}" + "/" + season + "/" + "outputs" + "/" + "mergetime" + "/" + "*.nc"
+
+        # print the path to the files
+        print("Searching for files in ", files_path)
+
+        # Create a list of the files for this model.
+        files = glob.glob(files_path)
+
+        # if the list of files is empty, print a warning and
+        # exit the program
+        if len(files) == 0:
+            print("No files found for " + model)
+            sys.exit()
+        
+        # Print the files to the screen.
+        print("Files for " + model + ":", files)
+
+        # Loop over the files.
+        for file in files:
+
+            # Print the file to the screen.
+            # print(file)
+            
+            # check that the file exists
+            # if it doesn't exist, print a warning and
+            # exit the program
+            if not os.path.exists(file):
+                print("File " + file + " does not exist")
+                sys.exit()
+
+            # Load the dataset.
+            dataset = xr.open_dataset(file, chunks = {"time": 50, "lat": 45, "lon": 45})
+
+            # Extract the variant_label
+            variant_label = dataset.attrs['variant_label']
+
+            # Print the variant_label
+            print("loading variant_label: ", variant_label)
+
+            # Append the dataset to the list of datasets for this model.
+            datasets_by_model[model].append(dataset)
+            
+    # Return the dictionary of datasets.
+    return datasets_by_model
+
 # Set up a function which which given the dataset and variable
 # will extract the data for the given variable and the time dimension
 def process_historical_members(model_member, variable):
