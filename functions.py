@@ -883,7 +883,6 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
     obs_lons_converted = obs_lons_converted + 180
 
     # For the model lons
-    # FIXME: lon is not defined here
     # Define lon in this case as the dcpp_lon
     # the dcpp lon and historical lon are the same
     lon = dcpp_lon
