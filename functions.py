@@ -449,17 +449,20 @@ def constrain_years_processed_hist(model_data, models):
 
 # Function to remove years with Nans
 # checking for Nans in observed data
-def remove_years_with_nans(observed_data, ensemble_mean, variable):
+def remove_years_with_nans(observed_data, dcpp_ensemble_mean, historical_ensemble_mean, variable):
     """
     Removes years from the observed data that contain NaN values.
 
     Args:
         observed_data (xarray.Dataset): The observed data.
-        ensemble_mean (xarray.Dataset): The ensemble mean (model data).
+        dcpp_ensemble_mean (xarray.Dataset): The ensemble mean of the initialized data.
+        historical_ensemble_mean (xarray.Dataset): The ensemble mean of the uninitialized data.
         variable (str): the variable name.
 
     Returns:
         xarray.Dataset: The observed data with years containing NaN values removed.
+        xarray.Dataset: The ensemble mean of the initialized data with years containing NaN values removed.
+        xarray.Dataset: The ensemble mean of the uninitialized data with years containing NaN values removed.
     """
 
     # # Set the obs_var_name == variable
@@ -495,20 +498,22 @@ def remove_years_with_nans(observed_data, ensemble_mean, variable):
             # Select the year from the observed data
             observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
 
-            # for the model data
-            ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year != year)
+            # for the dcpp data
+            # Select the year from the dcpp data
+            dcpp_ensemble_mean = dcpp_ensemble_mean.sel(time=dcpp_ensemble_mean.time.dt.year != year)
 
+            # for the historical data
+            # Select the year from the historical data
+            historical_ensemble_mean = historical_ensemble_mean.sel(time=historical_ensemble_mean.time.dt.year != year)
         # if there are no Nan values in the data for a year
-        # then print the year
-        # and "no nan for this year"
-        # and continue the script
+        # then print the year and exit the loop
         else:
             # print(year, "no nan for this year")
 
             # exit the loop
             break
 
-    return observed_data, ensemble_mean
+    return observed_data, dcpp_ensemble_mean, historical_ensemble_mean
 
 # Function for calculating the spatial correlations
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
@@ -746,6 +751,67 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     return rfield, pfield, obs_lons_converted, lons_converted, observed_data, ensemble_mean, ensemble_members_count
 
 
+
+# Define a new function to calculate the correlations as differences
+# between the initialized (dcpp data) and the uninitialized (historical data)
+def calculate_correlations_diff(observed_data, init_model_data, uninit_model_data, obs_lat, obs_lon, p_sig = 0.05):
+    """
+    Calculates the spatial correlations for both the initialized and uninitialized data.
+    Then calculates the differences between the initialized (dcpp data) and the uninitialized (historical data).
+    Identifies the regions where the correlation improvements are statistically significant.
+    
+    Parameters:
+        observed_data (xarray.core.dataset.Dataset): The processed observed data.
+        init_model_data (dict): The processed initialized model data.
+        uninit_model_data (dict): The processed uninitialized model data.
+        obs_lat (numpy.ndarray): The latitude values of the observed data.
+        obs_lon (numpy.ndarray): The longitude values of the observed data.
+        p_sig (float): The p-value for statistical significance. Default is 0.05.
+    
+    Returns:
+        rfield_diff (xarray.core.dataarray.DataArray): The differences in spatial correlations between the initialized and uninitialized data.
+        sign_regions (xarray.core.dataarray.DataArray): The regions where the correlation improvements are statistically significant.
+    """
+
+    # Use the calculate_correlations function to calculate the correlations for both the initialized and uninitialized data
+    # First for the initialized data
+    rfield_init, pfield_init = calculate_correlations(observed_data, init_model_data, obs_lat, obs_lon)
+
+    # Then for the uninitialized data
+    rfield_uninit, pfield_uninit = calculate_correlations(observed_data, uninit_model_data, obs_lat, obs_lon)
+
+    # Calculate the differences between the initialized and uninitialized data
+    rfield_diff = rfield_init - rfield_uninit
+
+    # Calculate the p-values for the differences between the initialized and uninitialized data
+    # First flatten the pfield_init and pfield_uninit arrays
+    pfield_init_flat = pfield_init.flatten()
+    pfield_uninit_flat = pfield_uninit.flatten()
+
+    # Then calculate the p-values for the differences between the initialized and uninitialized data
+    # Using a two tailed t-test
+    t_stat, p_values = stats.ttest_ind(pfield_init_flat, pfield_uninit_flat, axis=0, equal_var=False)
+
+    # Reshape the p-values array
+    # To the same shape as the rfield_diff array
+    p_values = p_values.reshape(rfield_diff.shape)
+
+    # Identify the regions where the correlation improvements are statistically significant
+    # at the 95% confidence level
+    sign_regions = p_values < p_sig
+
+    # Prin the types of the rfield_diff and sign_regions arrays
+    print("rfield_diff type", type(rfield_diff))
+    print("sign_regions type", type(sign_regions))
+
+    # Print the shapes of the rfield_diff and sign_regions arrays
+    print("rfield_diff shape", np.shape(rfield_diff))
+    print("sign_regions shape", np.shape(sign_regions))
+
+    # Return the differences in spatial correlations and the p-values
+    return rfield_diff, sign_regions
+
+
 # Define a new function which will calculate the differences in spatial correlations
 # Between the initialized (dcpp data) and the uninitialized (historical data)
 # This function will calculate the r and p fields for both the initialized and uninitialized data
@@ -766,7 +832,14 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
     
     Returns:
     rfield_diff (xarray.core.dataarray.DataArray): The differences in spatial correlations between the initialized and uninitialized data.
-    pfield_diff (xarray.core.dataarray.DataArray): The p-values for the differences in spatial correlations between the initialized and uninitialized data.
+    sign_regions (xarray.core.dataarray.DataArray): The regions where the correlation improvements are statistically significant.
+    obs_lons_converted (numpy.ndarray): The converted longitude values of the observed data.
+    lons_converted (numpy.ndarray): The converted longitude values of the model data.
+    observed_data (xarray.core.dataset.Dataset): The processed observed data.
+    dcpp_ensemble_mean (xarray.core.dataarray.DataArray): The ensemble mean of the initialized data.
+    historical_ensemble_mean (xarray.core.dataarray.DataArray): The ensemble mean of the uninitialized data.
+    dcpp_ensemble_members_count (dict): The number of ensemble members for each dcpp model.
+    historical_ensemble_members_count (dict): The number of ensemble members for each historical model.
     """
 
     # First process the dcpp model data to get the ensemble mean
@@ -784,12 +857,56 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
     # Extract the years from the observed data
     obs_years = observed_data.time.dt.year.values
 
+    # Initialize lists for the converted lons
+    obs_lons_converted, lons_converted = [], []
+
+    # Transform the obs lons
+    obs_lons_converted = np.where(obs_lon > 180, obs_lon - 360, obs_lon)
+    # add 180 to the obs_lons_converted
+    obs_lons_converted = obs_lons_converted + 180
+
+    # For the model lons
+    lons_converted = np.where(lon > 180, lon - 360, lon)
+    # # add 180 to the lons_converted
+    lons_converted = lons_converted + 180
+
     # Find the years that are in both the observed and model data
     # First find those years for the model data
     shared_years_model_data = np.intersect1d(dcpp_years, historical_years)
 
     # Then find those years for the observed data
     shared_years = np.intersect1d(obs_years, shared_years_model_data)
+
+    # Select only the years that are in both the observed and model data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(shared_years))
+    dcpp_ensemble_mean = dcpp_ensemble_mean.sel(time=dcpp_ensemble_mean.time.dt.year.isin(shared_years))
+    historical_ensemble_mean = historical_ensemble_mean.sel(time=historical_ensemble_mean.time.dt.year.isin(shared_years))
+
+    # Remove years containing only NaNs
+    # from all three datasets
+    # using the function 'remove_years_with_nans'
+    observed_data, dcpp_ensemble_mean, historical_ensemble_mean = remove_years_with_nans(observed_data, dcpp_ensemble_mean, historical_ensemble_mean, variable)
+
+    # Convert all the datasets to numpy arrays
+    observed_data_array = observed_data.values
+    dcpp_ensemble_mean_array = dcpp_ensemble_mean.values
+    historical_ensemble_mean_array = historical_ensemble_mean.values
+
+    # Check that all of these have the same shape
+    if observed_data_array.shape != dcpp_ensemble_mean_array.shape != historical_ensemble_mean_array.shape:
+        raise ValueError("Observed data and ensemble mean must have the same shape.")
+        sys.exit(1)
+    
+    # Set up the arrays for calculating correlations
+    obs = observed_data_array
+    init_model = dcpp_ensemble_mean_array
+    uninit_model = historical_ensemble_mean_array
+
+    # Use the calculate_correlations_diff function to calculate the differences in spatial correlations between the initialized and uninitialized data
+    rfield_diff, sign_regions = calculate_correlations_diff(obs, init_model, uninit_model, obs_lat, obs_lon, p_sig=0.05)
+
+    # Return the outputs
+    return rfield_diff, sign_regions, obs_lons_converted, lons_converted, observed_data, dcpp_ensemble_mean, historical_ensemble_mean, dcpp_ensemble_members_count, historical_ensemble_members_count
 
 
 # Using cdo to do the regridding and selecting the region
