@@ -688,6 +688,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     obs_lons_converted = obs_lons_converted + 180
 
     # For the model lons
+    # FIXME: lon is not defined here
     lons_converted = np.where(lon > 180, lon - 360, lon)
     # # add 180 to the lons_converted
     lons_converted = lons_converted + 180
