@@ -745,6 +745,53 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     return rfield, pfield, obs_lons_converted, lons_converted, observed_data, ensemble_mean, ensemble_members_count
 
+
+# Define a new function which will calculate the differences in spatial correlations
+# Between the initialized (dcpp data) and the uninitialized (historical data)
+# This function will calculate the r and p fields for both the initialized and uninitialized data
+# Then calculate the differences between the two
+def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historical_model_data, dcpp_models, historical_models, variable):
+    """
+    Ensures that the observed and model data have the same dimensions, format and shape. 
+    Before calculating the spatial correlations for each of the datasets.
+    Then calculates the differences between the initialized (dcpp data) and the uninitialized (historical data).
+    
+    Parameters:
+    observed_data (xarray.core.dataset.Dataset): The processed observed data.
+    dcpp_model_data (dict): The processed dcpp model data - initialized.
+    historical_model_data (dict): The processed historical model data - uninitialized.
+    dcpp_models (list): The list of dcpp models to be plotted.
+    historical_models (list): The list of historical models to be plotted.
+    variable (str): The variable name.
+    
+    Returns:
+    rfield_diff (xarray.core.dataarray.DataArray): The differences in spatial correlations between the initialized and uninitialized data.
+    pfield_diff (xarray.core.dataarray.DataArray): The p-values for the differences in spatial correlations between the initialized and uninitialized data.
+    """
+
+    # First process the dcpp model data to get the ensemble mean
+    dcpp_ensemble_mean, dcpp_lat, dcpp_lon, dcpp_years, dcpp_ensemble_members_count = process_model_data_for_plot(dcpp_model_data, dcpp_models)
+
+    # Then process the historical model data to get the ensemble mean
+    historical_ensemble_mean, historical_lat, historical_lon, historical_years, historical_ensemble_members_count = process_model_data_for_plot(historical_model_data, historical_models)
+
+    # Extract the lat and lon values from the observed data
+    # Because of how the data has been processed using cdo and gridspec files,
+    # the lat and lon values are the same for the observed and model data
+    obs_lat = observed_data.lat.values
+    obs_lon = observed_data.lon.values
+
+    # Extract the years from the observed data
+    obs_years = observed_data.time.dt.year.values
+
+    # Find the years that are in both the observed and model data
+    # First find those years for the model data
+    shared_years_model_data = np.intersect1d(dcpp_years, historical_years)
+
+    # Then find those years for the observed data
+    shared_years = np.intersect1d(obs_years, shared_years_model_data)
+
+
 # Using cdo to do the regridding and selecting the region
 def regrid_and_select_region(observations_path, region, obs_var_name):
     """
