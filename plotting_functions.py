@@ -373,7 +373,40 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
         total_no_members = None
 
     # Add a textbox for the first subplot
-    # in the top right
+    # in the top left
     # with 'dcppA' in it
-    ax1.text(0.95, 0.95, 'dcppA', transform=ax1.transAxes, fontsize=12, fontweight='bold', va='top', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+    ax1.text(0.05, 0.95, 'dcppA', transform=ax1.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+
+    # Add another textbox for the first subplot
+    # in the bottom right
+    # for the number of ensemble members
+    ax1.text(0.95, 0.05, f"N = {total_no_members_init}", transform=ax1.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+    # Add a textbox for the second subplot
+    # in the top left
+    # with 'historical' in it
+    ax2.text(0.05, 0.95, 'historical', transform=ax2.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+
+    # Add another textbox for the second subplot
+    # in the bottom right
+    # for the number of ensemble members
+    ax2.text(0.95, 0.05, f"N = {total_no_members_uninit}", transform=ax2.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+    # Set up the title
+    title = f"{model} {variable} {region} {season} {forecast_range} {first_year}-{last_year} correlation coefficients, p < {p_sig} ({sig_threshold}%)"
+
+    # Add the sup title
+    fig.suptitle(title, fontsize=12)
+
+    # set up the figure name
+    fig_name = f"{model}_{variable}_{region}_{season}_{forecast_range}_{total_no_members_init}_{total_no_members_uninit}_{p_sig}_correlation_coefficient_differences_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
 
