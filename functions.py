@@ -646,3 +646,305 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
 
     return rfield, pfield, obs_lons_converted, lons_converted, observed_data, ensemble_mean, ensemble_members_count
+
+# Using cdo to do the regridding and selecting the region
+def regrid_and_select_region(observations_path, region, obs_var_name):
+    """
+    Uses CDO remapbil and a gridspec file to regrid and select the correct region for the obs dataset. Loads for the specified variable.
+    
+    Parameters:
+    observations_path (str): The path to the observations dataset.
+    region (str): The region to select.
+
+    Returns:
+    xarray.Dataset: The regridded and selected observations dataset.
+    """
+    
+    # First choose the gridspec file based on the region
+    gridspec_path = "/home/users/benhutch/gridspec"
+
+    # select the correct gridspec file
+    if region == "north-atlantic":
+        gridspec = gridspec_path + "/" + "gridspec-north-atlantic.txt"
+    elif region == "global":
+        gridspec = gridspec_path + "/" + "gridspec-global.txt"
+    elif region == "azores":
+        gridspec = gridspec_path + "/" + "gridspec-azores.txt"
+    elif region == "iceland":
+        gridspec = gridspec_path + "/" + "gridspec-iceland.txt"
+    else:
+        print("Invalid region")
+        sys.exit()
+
+    # Check that the gridspec file exists
+    if not os.path.exists(gridspec):
+        print("Gridspec file does not exist")
+        sys.exit()
+
+    # Create the output file path
+    regrid_sel_region_file = "/home/users/benhutch/ERA5/" + region + "_" + "regrid_sel_region.nc"
+
+    # Check if the output file already exists
+    # If it does, then exit the program
+    if os.path.exists(regrid_sel_region_file):
+        print("File already exists")
+        print("Loading ERA5 data")
+    else:
+        print("File does not exist")
+        print("Processing ERA5 data using CDO")
+
+        # Regrid and select the region using cdo 
+        cdo.remapbil(gridspec, input=observations_path, output=regrid_sel_region_file)
+
+    # Load the regridded and selected region dataset
+    # for the provided variable
+    # check whether the variable name is valid
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos"]:
+        print("Invalid variable name")
+        sys.exit()
+
+    # Translate the variable name to the name used in the obs dataset
+    if obs_var_name == "psl":
+        obs_var_name = "msl"
+    elif obs_var_name == "tas":
+        obs_var_name = "t2m"
+    elif obs_var_name == "sfcWind":
+        obs_var_name = "si10"
+    elif obs_var_name == "rsds":
+        obs_var_name = "ssrd"
+    elif obs_var_name == "tos":
+        obs_var_name = "sst"
+    else:
+        print("Invalid variable name")
+        sys.exit()
+
+    # Load the regridded and selected region dataset
+    # for the provided variable
+    try:
+        # Load the dataset for the selected variable
+        regrid_sel_region_dataset = xr.open_mfdataset(regrid_sel_region_file, combine='by_coords', parallel=True, chunks={"time": 100, 'lat': 100, 'lon': 100})[obs_var_name]
+
+        # Combine the two expver variables
+        regrid_sel_region_dataset_combine = regrid_sel_region_dataset.sel(expver=1).combine_first(regrid_sel_region_dataset.sel(expver=5))
+
+        return regrid_sel_region_dataset_combine
+
+    except Exception as e:
+        print(f"Error loading regridded and selected region dataset: {e}")
+        sys.exit()
+
+def select_season(regridded_obs_dataset_region, season):
+    """
+    Selects a season from a regridded observation dataset based on the given season string.
+
+    Parameters:
+    regridded_obs_dataset_region (xarray.Dataset): The regridded observation dataset for the selected region.
+    season (str): A string representing the season to select. Valid values are "DJF", "MAM", "JJA", "SON", "SOND", "NDJF", and "DJFM".
+
+    Returns:
+    xarray.Dataset: The regridded observation dataset for the selected season.
+
+    Raises:
+    ValueError: If an invalid season string is provided.
+    """
+
+    try:
+        # Extract the months from the season string
+        if season == "DJF":
+            months = [12, 1, 2]
+        elif season == "MAM":
+            months = [3, 4, 5]
+        elif season == "JJA":
+            months = [6, 7, 8]
+        elif season == "JJAS":
+            months = [6, 7, 8, 9]
+        elif season == "SON":
+            months = [9, 10, 11]
+        elif season == "SOND":
+            months = [9, 10, 11, 12]
+        elif season == "NDJF":
+            months = [11, 12, 1, 2]
+        elif season == "DJFM":
+            months = [12, 1, 2, 3]
+        else:
+            raise ValueError("Invalid season")
+
+        # Select the months from the dataset
+        regridded_obs_dataset_region_season = regridded_obs_dataset_region.sel(
+            time=regridded_obs_dataset_region["time.month"].isin(months)
+        )
+
+        return regridded_obs_dataset_region_season
+    except:
+        print("Error selecting season")
+        sys.exit()
+
+def calculate_anomalies(regridded_obs_dataset_region_season):
+    """
+    Calculates the anomalies for a given regridded observation dataset for a specific season.
+
+    Parameters:
+    regridded_obs_dataset_region_season (xarray.Dataset): The regridded observation dataset for the selected region and season.
+
+    Returns:
+    xarray.Dataset: The anomalies for the given regridded observation dataset.
+
+    Raises:
+    ValueError: If the input dataset is invalid.
+    """
+    try:
+        obs_climatology = regridded_obs_dataset_region_season.mean("time")
+        obs_anomalies = regridded_obs_dataset_region_season - obs_climatology
+        return obs_anomalies
+    except:
+        print("Error calculating anomalies for observations")
+        sys.exit()    
+
+
+def calculate_annual_mean_anomalies_obs(obs_anomalies, season):
+    """
+    Calculates the annual mean anomalies for a given observation dataset and season.
+
+    Parameters:
+    obs_anomalies (xarray.Dataset): The observation dataset containing anomalies.
+    season (str): The season for which to calculate the annual mean anomalies.
+
+    Returns:
+    xarray.Dataset: The annual mean anomalies for the given observation dataset and season.
+
+    Raises:
+    ValueError: If the input dataset is invalid.
+    """
+    try:
+        # Shift the dataset if necessary
+        if season in ["DJFM", "NDJFM"]:
+            obs_anomalies_shifted = obs_anomalies.shift(time=-3)
+        elif season in ["DJF", "NDJF"]:
+            obs_anomalies_shifted = obs_anomalies.shift(time=-2)
+        elif season in ["NDJ", "ONDJ"]:
+            obs_anomalies_shifted = obs_anomalies.shift(time=-1)
+        else:
+            obs_anomalies_shifted = obs_anomalies
+
+        # Calculate the annual mean anomalies
+        obs_anomalies_annual = obs_anomalies_shifted.resample(time="Y").mean("time")
+
+        return obs_anomalies_annual
+    except:
+        print("Error shifting and calculating annual mean anomalies for observations")
+        sys.exit()
+
+def select_forecast_range(obs_anomalies_annual, forecast_range):
+    """
+    Selects the forecast range for a given observation dataset.
+
+    Parameters:
+    obs_anomalies_annual (xarray.Dataset): The observation dataset containing annual mean anomalies.
+    forecast_range (str): The forecast range to select.
+
+    Returns:
+    xarray.Dataset: The observation dataset containing annual mean anomalies for the selected forecast range.
+
+    Raises:
+    ValueError: If the input dataset is invalid.
+    """
+    try:
+        
+        forecast_range_start, forecast_range_end = map(int, forecast_range.split("-"))
+        print("Forecast range:", forecast_range_start, "-", forecast_range_end)
+        
+        rolling_mean_range = forecast_range_end - forecast_range_start + 1
+        print("Rolling mean range:", rolling_mean_range)
+
+        # if rolling mean range is 1, then we don't need to calculate the rolling mean
+        if rolling_mean_range == 1:
+            print("rolling mean range is 1, no need to calculate rolling mean")
+            return obs_anomalies_annual
+        
+        obs_anomalies_annual_forecast_range = obs_anomalies_annual.rolling(time=rolling_mean_range, center = True).mean()
+        
+        return obs_anomalies_annual_forecast_range
+    except Exception as e:
+        print("Error selecting forecast range:", e)
+        sys.exit()
+
+
+# Call the functions to process the observations
+def process_observations(variable, region, region_grid, forecast_range, season, observations_path, obs_var_name):
+    """
+    Processes the observations dataset by regridding it to the model grid, selecting a region and season,
+    calculating anomalies, calculating annual mean anomalies, selecting the forecast range, and returning
+    the processed observations.
+
+    Args:
+        variable (str): The variable to process.
+        region (str): The region to select.
+        region_grid (str): The grid to regrid the observations to.
+        forecast_range (str): The forecast range to select.
+        season (str): The season to select.
+        observations_path (str): The path to the observations dataset.
+        obs_var_name (str): The name of the variable in the observations dataset.
+
+    Returns:
+        xarray.Dataset: The processed observations dataset.
+    """
+
+    # Check if the observations file exists
+    if not os.path.exists(observations_path):
+        print("Error, observations file does not exist")
+        return None
+
+    try:
+        # Regrid using CDO, select region and load observation dataset
+        # for given variable
+        obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
+
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_dataset")
+        # check_for_nan_values(obs_dataset)
+
+        # Select the season
+        # --- Although will already be in DJFM format, so don't need to do this ---
+        regridded_obs_dataset_region_season = select_season(obs_dataset, season)
+
+        # Print the dimensions of the regridded and selected region dataset
+        print("Regridded and selected region dataset:", regridded_obs_dataset_region_season.time)
+
+        # # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in regridded_obs_dataset_region_season")
+        # check_for_nan_values(regridded_obs_dataset_region_season)
+        
+        # Calculate anomalies
+        obs_anomalies = calculate_anomalies(regridded_obs_dataset_region_season)
+
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_anomalies")
+        # check_for_nan_values(obs_anomalies)
+
+        # Calculate annual mean anomalies
+        obs_annual_mean_anomalies = calculate_annual_mean_anomalies_obs(obs_anomalies, season)
+
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_annual_mean_anomalies")
+        # check_for_nan_values(obs_annual_mean_anomalies)
+
+        # Select the forecast range
+        obs_anomalies_annual_forecast_range = select_forecast_range(obs_annual_mean_anomalies, forecast_range)
+        # Check for NaN values in the observations dataset
+        # print("Checking for NaN values in obs_anomalies_annual_forecast_range")
+        # check_for_nan_values(obs_anomalies_annual_forecast_range)
+
+        # if the forecast range is "2-2" i.e. a year ahead forecast
+        # then we need to shift the dataset by 1 year
+        # where the model would show the DJFM average as Jan 1963 (s1961)
+        # the observations would show the DJFM average as Dec 1962
+        # so we need to shift the observations to the following year
+        if forecast_range == "2-2":
+            obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
+
+
+        return obs_anomalies_annual_forecast_range
+
+    except Exception as e:
+        print(f"Error processing observations dataset: {e}")
+        sys.exit()

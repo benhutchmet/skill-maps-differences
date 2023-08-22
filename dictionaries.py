@@ -4,9 +4,9 @@
 dcpp_base_dir = "/home/users/benhutch/skill-maps-processed-data"
 
 # define the directory where the plots will be saved
-plots_dir = base_dir + "/plots"
+plots_dir = dcpp_base_dir + "/plots"
 
-gif_plots_dir = base_dir + "/plots/gif"
+gif_plots_dir = dcpp_base_dir + "/plots/gif"
 
 # list of the test model
 test_model = [ "CMCC-CM2-SR5" ]
