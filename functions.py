@@ -583,13 +583,14 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         sys.exit()
 
 # function for processing the model data for plotting
-def process_model_data_for_plot(model_data, models):
+def process_model_data_for_plot(model_data, models, observed_data):
     """
     Processes the model data and calculates the ensemble mean.
 
     Parameters:
     model_data (dict): The processed model data.
     models (list): The list of models to be plotted.
+    observed_data (xarray.core.dataset.Dataset): The processed observed data.
 
     Returns:
     ensemble_mean (xarray.core.dataarray.DataArray): The equally weighted ensemble mean of the ensemble members.
@@ -641,6 +642,19 @@ def process_model_data_for_plot(model_data, models):
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
 
+    # constrain the years of the observed data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years))
+
+    # Convert observed_data to a numpy array
+    if type(observed_data) != np.ndarray:
+        print("converting observed data to numpy array")
+        observed_data = observed_data.values
+
+    # print the shape of the ensemble members
+    print("shape of ensemble members", np.shape(ensemble_members))
+    # prin the shape of the observed data
+    print("shape of observed data", np.shape(observed_data))
+
     # Convert the list of all ensemble members to a numpy array
     ensemble_members = np.array(ensemble_members)
 
@@ -659,7 +673,7 @@ def process_model_data_for_plot(model_data, models):
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
-    return ensemble_mean, ensemble_members, lat, lon, years, ensemble_members_count
+    return ensemble_mean, ensemble_members, observed_data, lat, lon, years, ensemble_members_count
 
 # checking for Nans in observed data
 def remove_years_with_nans_original(observed_data, ensemble_mean, variable):
@@ -903,7 +917,8 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
 # This function takes as input the observed data and the model data
 # as well as the models being used and the variable name
 # and returns the field of p-values for the spatial correlations
-def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000):
+# TODO: fix this hardcoding issue
+def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000, experiment=None):
     """
     The method involves creating 1,000 bootstrapped hindcasts from a finite ensemble size and a finite number of validation years. 
     The steps involved in creating the bootstrapped hindcasts are as follows:
@@ -962,42 +977,17 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
 
     # Use the function ======= to convert the model data to a numpy array
     # use the function process_model_data_for_plot for this
-    _, model_data, _, _, model_years, ensemble_members_count = process_model_data_for_plot(model_data, models)
-
-    # print the model years
-    print("model years", model_years)
-    # print model_years shape
-    print("model years shape", np.shape(model_years))
-    # print model_years type
-    print("model years type", type(model_years))
-
-    # Print the observed years
-    # Print the years extracted from the observed data
-    print("observed years", obs_years)
-    # print obs_years shape
-    print("observed years shape", np.shape(obs_years))
-    # print obs_years type
-    print("observed years type", type(obs_years))
-
-    # constrain the years to the years that are in both the observed and model data
-    # FIXME: Hardcoded for dcpp data
-    obs_years = obs_years[3:]
-
-    # print the shape of the observed years
-    print("observed years shape", np.shape(obs_years))
-    print("model years shape", np.shape(model_years))
-
-    # print the years that are in both the observed and model data
-    print("obs years", obs_years)
-    print("model years", model_years)
+    _, model_data, observed_data, _, _, model_years, ensemble_members_count = process_model_data_for_plot(model_data, models, observed_data)
 
     # if observed data is not a numpy array
     if type(observed_data) != np.ndarray:
         print("observed data is not a numpy array")
         # convert observed data to a numpy array
         observed_data = observed_data.values
-        # constrain the years to the years that are in both the observed and model data
-        observed_data = observed_data[3:, :, :]
+        # if the experiment is dcppA-hindcast
+
+        # # constrain the years to the years that are in both the observed and model data
+        # observed_data = observed_data[3:, :, :]
 
     # Print the types of the observed and model data
     print("observed data type", type(observed_data))
@@ -1025,7 +1015,6 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     print("model data year constrained", np.shape(model_data))
 
     # Now we want to check that there are no NaNs in the observed and model data
-    # FIXME: if there are Nans then we should use the function to get rid of these
     if np.isnan(observed_data).any():
         raise ValueError("Observed data contains NaNs.")
     
@@ -1189,12 +1178,16 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
 
     # Now loop over the lats and lons
     for y in range(len(lats)):
+        # print("y", y)
         for x in range(len(lons)):
+            # print("x", x)
+            # # print the shape of the rfield_dist array
+            # print("rfield_dist shape", np.shape(rfield_dist))
             # set up the rfield_dist and pfield_dist
-            rfield_dist = rfield_dist[:, y, x]
+            rfield_sample = rfield_dist[:, y, x]
 
             # Calculate the p-value
-            pfield_bootstrap[y, x] = np.sum(rfield_dist < 0) / n_bootstraps
+            pfield_bootstrap[y, x] = np.sum(rfield_sample < 0) / n_bootstraps
 
     # Print the shape of the pfield_bootstrap array
     print("pfield_bootstrap shape", np.shape(pfield_bootstrap))
