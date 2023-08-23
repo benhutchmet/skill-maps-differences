@@ -943,11 +943,90 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # First we need to make sure that both of these are numpy arrays
     if type(observed_data) != np.ndarray:
         print("observed data not a numpy array")
+        # Convert the observed data to a numpy array
+        observed_data = observed_data.values
 
     # Use the function ======= to convert the model data to a numpy array
     # use the function process_model_data_for_plot for this
     _, model_data, _, _, _, ensemble_members_count = process_model_data_for_plot(model_data, models)
 
+    # Print the types of the observed and model data
+    print("observed data type", type(observed_data))
+    print("model data type", type(model_data))
+
+    # Print the shapes of the observed and model data
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", np.shape(model_data))
+    
+    # Check that the observed and model data have the same type
+    if type(observed_data) != type(model_data):
+        raise ValueError("Observed data and model data must have the same type.")
+    
+    # We want to make sure that the observed and model data are valid
+    # for the same years
+    # Extract the years from the observed data
+    # this is the first dimension of the observed data
+    obs_years = observed_data[:, 0, 0]
+
+    # Extract the years from the model data
+    # this is the second dimension of the model data
+    model_years = model_data[0, :, 0, 0]
+
+    # Print the years extracted from the observed and model data
+    print("observed years", obs_years)
+    print("model years", model_years)
+
+    # Find the years that are in both the observed and model data
+    years_in_both = np.intersect1d(obs_years, model_years)
+
+    # Print the years that are in both the observed and model data
+    print("years in both", years_in_both)
+
+    # Select only the years that are in both the observed and model data
+    observed_data = observed_data[observed_data[:, 0, 0].isin(years_in_both)]
+    model_data = model_data[model_data[0, :, 0, 0].isin(years_in_both)]
+
+    # Now we want to check that there are no NaNs in the observed and model data
+    # FIXME: if there are Nans then we should use the function to get rid of these
+    if np.isnan(observed_data).any():
+        raise ValueError("Observed data contains NaNs.")
+    
+    if np.isnan(model_data).any():
+        raise ValueError("Model data contains NaNs.")
+    
+    # Now we want to check that the observed and model data have the same shape
+    # for all dimensions of the observed data
+    # and the final 3 dimensions of the model data
+    model_data_shape = model_data[0, :, :, :]
+
+    # if the shapes are not the same
+    if observed_data.shape != model_data_shape.shape:
+        raise ValueError("Observed data and model data must have the same shape.")
+    
+    # Now we want to create empty arrays for the bootstrapped p-values
+    # and the bootstrapped correlation coefficients
+    # in model_data
+    # the first dimension is the ensemble members
+    # the second dimension is the time
+    # the third dimension is the lat
+    # the fourth dimension is the lon
+    # so we will first resample the years in the time dimension
+    # and then resample the ensemble members
+    # and then calculate the ensemble mean
+    # and then calculate the correlation coefficient
+    # and then append the correlation coefficient to the array
+    # and then append the p-value to the array
+    # and then repeat this process 1000 times
+    # so we will have 1000 correlation coefficients and p-values
+    # for each grid point
+    # create an empty array for the p-values
+    pfield = np.empty([n_bootstraps, len(observed_data[0, :, 0, 0]), len(observed_data[0, 0, :, 0]), len(observed_data[0, 0, 0, :])])
+    # create an empty array for the correlation coefficients
+    rfield = np.empty([n_bootstraps, len(observed_data[0, :, 0, 0]), len(observed_data[0, 0, :, 0]), len(observed_data[0, 0, 0, :])])
+
+    # Print the shapes of the pfield and rfield arrays
+    print("pfield array shape", np.shape(pfield))
+    print("rfield array shape", np.shape(rfield))
 
 
 # Define a new function which will calculate the differences in spatial correlations
