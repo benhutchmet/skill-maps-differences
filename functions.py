@@ -658,7 +658,7 @@ def process_model_data_for_plot(model_data, models):
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
-    return ensemble_mean, lat, lon, years, ensemble_members_count
+    return ensemble_mean, ensemble_members, lat, lon, years, ensemble_members_count
 
 # checking for Nans in observed data
 def remove_years_with_nans_original(observed_data, ensemble_mean, variable):
@@ -742,7 +742,7 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     """
     # try:
     # Process the model data and calculate the ensemble mean
-    ensemble_mean, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+    ensemble_mean, ensemble_members, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
 
     # Debug the model data
     # print("ensemble mean within spatial correlation function:", ensemble_mean)
@@ -862,28 +862,28 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
     print("rfield_init shape", np.shape(rfield_init))
     print("rfield_uninit shape", np.shape(rfield_uninit))
 
-    # Calculate the p-values for the differences between the initialized and uninitialized data
-    # Set up an empty array for the t-statistic
-    zeros_data = 
+    # # Calculate the p-values for the differences between the initialized and uninitialized data
+    # # Set up an empty array for the t-statistic
+    # zeros_data = 
     
-    # Loop over the latitudes and longitudes
-    for y in range(len(obs_lat)):
-        for x in range(len(obs_lon)):
-            # set up the model data
-            mod_init = init_model_data[:, y, x]
-            mod_uninit = uninit_model_data[:, y, x]
+    # # Loop over the latitudes and longitudes
+    # for y in range(len(obs_lat)):
+    #     for x in range(len(obs_lon)):
+    #         # set up the model data
+    #         mod_init = init_model_data[:, y, x]
+    #         mod_uninit = uninit_model_data[:, y, x]
 
-            # Calculate the correlation coefficient and p-value
-            t_stat[y, x], p_values[y, x] = stats.ttest_ind(mod_init, mod_uninit, equal_var=False)
+    #         # Calculate the correlation coefficient and p-value
+    #         t_stat[y, x], p_values[y, x] = stats.ttest_ind(mod_init, mod_uninit, equal_var=False)
 
-    # Print the range of the correlation coefficients and p-values
-    # to 3 decimal places
-    print(f"t-statistic range from {t_stat.min():.3f} to {t_stat.max():.3f}")
-    print(f"P-values range from {p_values.min():.3f} to {p_values.max():.3f}")
+    # # Print the range of the correlation coefficients and p-values
+    # # to 3 decimal places
+    # print(f"t-statistic range from {t_stat.min():.3f} to {t_stat.max():.3f}")
+    # print(f"P-values range from {p_values.min():.3f} to {p_values.max():.3f}")
 
     # Identify the regions where the correlation improvements are statistically significant
     # at the 95% confidence level
-    sign_regions = p_values < p_sig
+    sign_regions = np.empty_like(rfield_diff)
 
     # Prin the types of the rfield_diff and sign_regions arrays
     print("rfield_diff type", type(rfield_diff))
@@ -895,6 +895,59 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
 
     # Return the differences in spatial correlations and the p-values
     return rfield_diff, sign_regions
+
+
+# We want to define a new function which will perform the bootstrapping
+# to calculate the significance of the ACC scores
+# This function takes as input the observed data and the model data
+# as well as the models being used and the variable name
+# and returns the field of p-values for the spatial correlations
+def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000):
+    """
+    The method involves creating 1,000 bootstrapped hindcasts from a finite ensemble size and a finite number of validation years. 
+    The steps involved in creating the bootstrapped hindcasts are as follows:
+
+    1) Randomly select N cases (validation years) with replacement. 
+        To take autocorrelation into account, this is done in blocks of five consecutive years.
+    2) For each case, randomly select M ensemble members with replacement. 
+        Compute the ensemble mean from these M samples.
+    3) Compute the evaluation metrics (ACC, MSSS, RPC, and skill difference) with 
+        the resultant ensemble mean prediction.
+    4) Repeat steps 1-3 1,000 times to create a sample distribution of the 
+        evaluation metrics.
+    
+    For the ACC and MSSS, the p-value is defined as the ratio of negative values from the 
+        bootstrapped sample distribution on the basis of a one-tailed test of the hypothesis 
+            that the prediction skill is greater than 0. 
+
+    Arguments:
+        observed_data (xarray.core.dataset.Dataset): The processed observed data.
+        model_data (dict): The processed model data.
+        models (list): The list of models to be plotted.
+        variable (str): The variable name.
+        n_bootstraps (int): The number of bootstraps to perform. Default is 1000.
+
+    Returns:
+        rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
+        pfield (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data. Bootstrapped.
+    """
+
+    # Print the types of the observed and model data
+    print("observed data type", type(observed_data))
+    print("model data type", type(model_data))
+
+    # Print the shapes of the observed and model data
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", len(model_data))
+
+    # First we need to make sure that both of these are numpy arrays
+    if type(observed_data) != np.ndarray:
+        print("observed data not a numpy array")
+
+    # Use the function ======= to convert the model data to a numpy array
+    # use the function process_model_data_for_plot for this
+    _, model_data, _, _, _, ensemble_members_count = process_model_data_for_plot(model_data, models)
+
 
 
 # Define a new function which will calculate the differences in spatial correlations
@@ -928,10 +981,10 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
     """
 
     # First process the dcpp model data to get the ensemble mean
-    dcpp_ensemble_mean, dcpp_lat, dcpp_lon, dcpp_years, dcpp_ensemble_members_count = process_model_data_for_plot(dcpp_model_data, dcpp_models)
+    dcpp_ensemble_mean, dcpp_ensemble_members, dcpp_lat, dcpp_lon, dcpp_years, dcpp_ensemble_members_count = process_model_data_for_plot(dcpp_model_data, dcpp_models)
 
     # Then process the historical model data to get the ensemble mean
-    historical_ensemble_mean, historical_lat, historical_lon, historical_years, historical_ensemble_members_count = process_model_data_for_plot(historical_model_data, historical_models)
+    historical_ensemble_mean, historical_ensemble_members, historical_lat, historical_lon, historical_years, historical_ensemble_members_count = process_model_data_for_plot(historical_model_data, historical_models)
 
     # Extract the lat and lon values from the observed data
     # Because of how the data has been processed using cdo and gridspec files,
