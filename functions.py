@@ -678,6 +678,116 @@ def process_model_data_for_plot(model_data, models, observed_data):
 
     return ensemble_mean, ensemble_members, observed_data, lat, lon, model_years, obs_years, ensemble_members_count
 
+# Function used to extract the ensemble members
+def extract_ensemble_members(model_data, models, ensemble_members, ensemble_members_count):
+    """
+    Extract the ensemble members from a dictionary of xarray datasets.
+
+    This function loops over the models in the dictionary and extracts the ensemble members
+    for each model. It also keeps track of the number of ensemble members for each model.
+
+    Parameters
+    ----------
+    model_data : dict of xarray.Dataset
+        The dictionary of xarray datasets containing the model data.
+    models : list of str
+        The names of the models to extract ensemble members for.
+    ensemble_members : list
+        The list to append the ensemble members to.
+    ensemble_members_count : dict
+        The dictionary to keep track of the number of ensemble members for each model.
+
+    Returns
+    -------
+    ensemble_members : list
+        The list of ensemble members.
+    lat : numpy.ndarray
+        The latitude values.
+    lon : numpy.ndarray
+        The longitude values.
+    model_years : numpy.ndarray
+        The years for the model data.
+    """
+    
+    # Loop over the models
+    for model in models:
+        # Extract the model data
+        model_data_combined = model_data[model]
+
+        # Print
+        print("extracting data for model:", model)
+
+        # Set the ensemble members count to zero
+        # if the model is not in the ensemble members count dictionary
+        if model not in ensemble_members_count:
+            ensemble_members_count[model] = 0
+        
+        # Loop over the ensemble members in the model data
+        for member in model_data_combined:
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members.append(member)
+
+            # Extract the lat and lon values
+            lat = member.lat.values
+            lon = member.lon.values
+
+            # Extract the years
+            model_years = member.time.dt.year.values
+
+            # Increment the count of ensemble members for the model
+            ensemble_members_count[model] += 1
+
+    return ensemble_members, lat, lon, model_years, ensemble_members_count
+
+# Define a new function - process_model_data_for_plot_diff
+# which takes both the initialized and uninitialized data
+# and calculates the ensemble mean for both, while constraining the years
+# to the years that are in all of the models
+def process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcpp_models, historical_models, observed_data):
+    """
+    Process model data for plotting the difference between initialized and uninitialized simulations.
+
+    This function takes both the initialized and uninitialized data and calculates the ensemble mean for both,
+    while constraining the years to the years that are in all of the models.
+
+    Parameters
+    ----------
+    dcpp_model_data : xarray.Dataset
+        The initialized model data to process.
+    historical_model_data : xarray.Dataset
+        The uninitialized model data to process.
+    dcpp_models : list of str
+        The names of the initialized models.
+    historical_models : list of str
+        The names of the uninitialized models.
+    observed_data : xarray.Dataset
+        The observed data to use for constraining the years.
+
+    Returns
+    -------
+    dcpp_ensemble_mean : xarray.core.dataarray.DataArray
+        The equally weighted ensemble mean of the initialized ensemble members.
+    historical_ensemble_mean : xarray.core.dataarray.DataArray
+        The equally weighted ensemble mean of the uninitialized ensemble members.
+    dcpp_ensemble_members : array
+        The initialized ensemble members.
+    historical_ensemble_members : array
+        The uninitialized ensemble members.
+    """
+
+    # Initialize lists for the ensemble members
+    dcpp_ensemble_members, historical_ensemble_members = [], []
+
+    # Initialize dictionaries to store the number of ensemble members
+    dcpp_ensemble_members_count, historical_ensemble_members_count = {}, {}
+
+    # First constrain the years to the years that are in all of the models
+    # for both the initialized and uninitialized data
+    dcpp_model_data = constrain_years_processed_hist(dcpp_model_data, dcpp_models)
+    historical_model_data = constrain_years_processed_hist(historical_model_data, historical_models)
+
+
+
 # checking for Nans in observed data
 def remove_years_with_nans_original(observed_data, ensemble_mean, variable):
     """
