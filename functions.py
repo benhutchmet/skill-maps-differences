@@ -879,10 +879,6 @@ def process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcp
 
     Returns
     -------
-    dcpp_ensemble_mean : xarray.core.dataarray.DataArray
-        The equally weighted ensemble mean of the initialized ensemble members.
-    historical_ensemble_mean : xarray.core.dataarray.DataArray
-        The equally weighted ensemble mean of the uninitialized ensemble members.
     dcpp_ensemble_members : array
         The initialized ensemble members.
     historical_ensemble_members : array
@@ -900,11 +896,44 @@ def process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcp
     dcpp_model_data = constrain_years_processed_hist(dcpp_model_data, dcpp_models)
     historical_model_data = constrain_years_processed_hist(historical_model_data, historical_models)
 
+    # Use the function to constrain the years of the initialized and uninitialized data
+    # to ensure that the years are the same for both
+    dcpp_model_data, historical_model_data = constrain_years_init_uninit(dcpp_model_data, historical_model_data, dcpp_models, historical_models)
+
     # Extract the ensemble members for the initialized data
     dcpp_ensemble_members, lat, lon, dcpp_model_years, dcpp_ensemble_members_count = extract_ensemble_members(dcpp_model_data, dcpp_models, dcpp_ensemble_members, dcpp_ensemble_members_count)
 
     # Extract the ensemble members for the uninitialized data
     historical_ensemble_members, _, _, historical_model_years, historical_ensemble_members_count = extract_ensemble_members(historical_model_data, historical_models, historical_ensemble_members, historical_ensemble_members_count)
+
+    # constrain the years of the observed data
+    # first ensure that the years are the same for both the initialized and uninitialized data
+    if dcpp_model_years.shape != historical_model_years.shape:
+        print("years are not the same for both the initialized and uninitialized data")
+        print("exiting the program")
+        sys.exit()
+
+    # Constrain the years of the observed data
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(dcpp_model_years))
+
+    # Extract the years from the observed data
+    obs_years = observed_data.time.dt.year.values
+
+    # Convert observed_data to a numpy array
+    if type(observed_data) != np.ndarray:
+        print("converting observed data to numpy array")
+        observed_data = observed_data.values
+
+    # Convert the list of all ensemble members to a numpy array
+    dcpp_ensemble_members = np.array(dcpp_ensemble_members)
+    historical_ensemble_members = np.array(historical_ensemble_members)
+
+    # Print the dimensions of the ensemble members
+    print("shape of dcpp ensemble members", np.shape(dcpp_ensemble_members))
+    print("shape of historical ensemble members", np.shape(historical_ensemble_members))
+    print("shape of observed data", np.shape(observed_data))
+
+    return dcpp_ensemble_members, historical_ensemble_members, observed_data, lat, lon, dcpp_model_years, historical_model_years, obs_years, dcpp_ensemble_members_count, historical_ensemble_members_count
 
 
 
