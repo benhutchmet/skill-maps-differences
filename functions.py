@@ -1000,6 +1000,10 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # and the final 3 dimensions of the model data
     model_data_shape = model_data[0, :, :, :]
 
+    # for brevity set up the lats and lons
+    lats = observed_data[0, :, 0]
+    lons = observed_data[0, 0, :]
+
     # if the shapes are not the same
     if observed_data.shape != model_data_shape.shape:
         raise ValueError("Observed data and model data must have the same shape.")
@@ -1088,9 +1092,6 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
 
         # Calculate the correlation coefficient and p-value for each case
         # First create empty arrays for the correlation coefficients and p-values
-        # for brevity set up the lats and lons
-        lats = observed_data[0, :, 0]
-        lons = observed_data[0, 0, :]
         # Now set up the empty arrays for rfield and pfield
         rfield = np.empty([len(lats), len(lons)])
         pfield = np.empty([len(lats), len(lons)])
@@ -1122,7 +1123,29 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # Print the types of the pfield and rfield arrays
     print("pfield array type", type(pfield_dist))
     print("rfield array type", type(rfield_dist))
-        
+
+    # Now we want to obtain the p-values for the correlations
+    # first create an empty array for the p-values
+    pfield_bootstrap = np.empty([len(lats), len(lons)])
+
+    # Now loop over the lats and lons
+    for y in range(len(lats)):
+        for x in range(len(lons)):
+            # set up the rfield_dist and pfield_dist
+            rfield_dist = rfield_dist[:, y, x]
+
+            # Calculate the p-value
+            pfield_bootstrap[y, x] = np.sum(rfield_dist < 0) / n_bootstraps
+
+    # Print the shape of the pfield_bootstrap array
+    print("pfield_bootstrap shape", np.shape(pfield_bootstrap))
+
+    # Print the type of the pfield_bootstrap array
+    print("pfield_bootstrap type", type(pfield_bootstrap))
+
+    # Return the p-values
+    return pfield_bootstrap
+
 
 
 
