@@ -915,6 +915,41 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
     return rfield_diff, sign_regions
 
 
+# function for removing years with Nans
+# from the observed data
+def remove_nan_years_obs(observed_data):
+    """
+    Remove years from an xarray dataset that contain NaN values.
+
+    Parameters
+    ----------
+    observed_data : xarray.Dataset
+        The observed data to remove years from.
+
+    Returns
+    -------
+    xarray.Dataset
+        The observed data with years containing NaN values removed.
+    """
+    # Get the years in the observed data
+    obs_years = np.unique(observed_data.time.dt.year)
+
+    # Loop over the years and remove any that contain NaN values
+    for year in obs_years:
+        # Extract the data for the year
+        data = observed_data.sel(time=f"{year}")
+
+        # If there are any NaN values in the data
+        if np.isnan(data.values).any():
+            # Print the year
+            print(year, "contains NaN values")
+            print("removing this year from the observed data")
+
+            # Select the year from the observed data
+            observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
+
+    return observed_data
+
 # We want to define a new function which will perform the bootstrapping
 # to calculate the significance of the ACC scores
 # This function takes as input the observed data and the model data
@@ -1198,15 +1233,37 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     return pfield_bootstrap
 
 
+# Define a new function to calculate the bootstrapped p-values for the differences in spatial correlations
+# Between the initialized (dcpp data) and the uninitialized (historical data)
+def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data, historical_model_data, dcpp_models, historical_models, variable, n_bootstraps=1000):
+    """
+    Ensures that the observed and model data have the same dimensions, format and shape.
+    Then performs the bootstrapping to create a sample distribution of the skill differences.
+    Calculates the p-values for the differences in spatial correlations between the initialized and uninitialized data.
+    
+    Arguments
+        observed_data (xarray.core.dataset.Dataset): The processed observed data.
+        dcpp_model_data (dict): The processed dcpp model data - initialized.
+        historical_model_data (dict): The processed historical model data - uninitialized.
+        dcpp_models (list): The list of dcpp models to be plotted.
+        historical_models (list): The list of historical models to be plotted.
+        variable (str): The variable name.
+        n_bootstraps (int): The number of bootstraps to perform. Default is 1000.
 
+    Returns:
+        rfield_diff (xarray.core.dataarray.DataArray): The differences in spatial correlations between the initialized and uninitialized data.
+        sign_regions (xarray.core.dataarray.DataArray): The regions where the correlation improvements are statistically significant.
+    """
 
-# ensemble_means now contains the ensemble means for each case, for each bootstrap iteration.
+    # Extract the years from the observed data
+    obs_years = observed_data.time.dt.year.values
 
+    # Use the function remove_nan_years_obs to remove the years containing NaNs
+    observed_data = remove_nan_years_obs(observed_data)
 
-
-    # bootstrapped_samples now contains your bootstrapped samples,
-    # where each sample is a block of five consecutive years for all ensemble members and features.
-
+    # Process the datasets to ensure that they have the same dimensions,
+    #  format and shape
+    # using the updated function process_model_data_for_plot_diff
 
 
 # Define a new function which will calculate the differences in spatial correlations
