@@ -22,7 +22,7 @@ import multiprocessing
 import dask.array as da
 import dask.distributed as dd
 import dask
-import sklearn as sk
+from sklearn.utils import resample
 
 # Import CDO
 from cdo import *
@@ -1069,12 +1069,15 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     rfield_dist = np.empty([n_bootstraps, len(observed_data[0, :, 0]), len(observed_data[0, 0, :])])
 
     # Print the shapes of the pfield and rfield arrays
-    print("pfield array shape", np.shape(pfield))
-    print("rfield array shape", np.shape(rfield))
+    print("pfield array shape", np.shape(pfield_dist))
+    print("rfield array shape", np.shape(rfield_dist))
 
     # Print the types of the pfield and rfield arrays
-    print("pfield array type", type(pfield))
-    print("rfield array type", type(rfield))
+    print("pfield array type", type(pfield_dist))
+    print("rfield array type", type(rfield_dist))
+
+    # # Take the time mean of the observed data
+    # observed_data_tm = np.mean(observed_data, axis=0)
 
     # Extract the number of validation years
     # this is the second dimension of the model data
@@ -1094,7 +1097,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # Create 
 
         # Randomly select block start indices
-        block_starts = sk.resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
+        block_starts = resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
 
         # Create indices for the entire blocks
         block_indices = []
@@ -1103,7 +1106,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
 
         # Ensure we have exactly N indices (with replacement)
         if len(block_indices) < n_validation_years:
-            block_indices.extend(sk.resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
+            block_indices.extend(resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
 
         # Print the block indices shape
         print("block indices shape", np.shape(block_indices))
@@ -1115,18 +1118,20 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         mask = np.zeros(n_validation_years, dtype=bool)
         mask[block_indices] = True
 
-        # Apply the mask to select the corresponding block of data
+        # Apply the mask to select the corresponding block of data for the model data
         n_mask_model_data = model_data[:, mask, :, :]
+        # Apply the mask to select the corresponding block of data for the observed data
+        n_mask_observed_data = observed_data[mask, :, :]
 
         # Next, for each case, randomly select M ensemble members with replacement.
-        ensemble_resampled = sk.resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
+        ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
 
         # Calculate the ensemble mean for each case
         ensemble_mean = np.mean(ensemble_resampled, axis=0)
 
         # Print the dimensions of the ensemble mean
         print("ensemble mean shape", np.shape(ensemble_mean))
-        print("observed data shape", np.shape(observed_data))
+        print("observed data shape", np.shape(n_mask_observed_data))
 
         # Calculate the correlation coefficient and p-value for each case
         # First create empty arrays for the correlation coefficients and p-values
@@ -1137,7 +1142,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         for y in range(len(lats)):
             for x in range(len(lons)):
                 # set up the obs and model data
-                obs = observed_data[:, y, x]
+                obs = n_mask_observed_data[:, y, x]
                 mod = ensemble_mean[:, y, x]
 
                 # Calculate the correlation coefficient and p-value
