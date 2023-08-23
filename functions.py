@@ -1524,6 +1524,110 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     # Process the datasets to ensure that they have the same dimensions,
     #  format and shape
     # using the updated function process_model_data_for_plot_diff
+    dcpp_ensemble_members, historical_ensemble_members, observed_data, lat, lon, dcpp_model_years, \
+        historical_model_years, obs_years, dcpp_ensemble_members_count, historical_ensemble_members_count \
+            = process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcpp_models, historical_models, observed_data)
+
+    # Print the types of the observed and model data
+    print("observed data type", type(observed_data))
+    print("dcpp model data type", type(dcpp_model_data))
+    print("historical model data type", type(historical_model_data))
+
+    # Print the shapes of the observed and model data
+    print("observed data shape", np.shape(observed_data))
+    print("dcpp model data shape", np.shape(dcpp_model_data))
+    print("historical model data shape", np.shape(historical_model_data))
+
+    # Check if there are any NaNs in the observed data
+    if np.isnan(observed_data).any():
+        raise ValueError("Observed data contains NaNs.")
+    
+    # Check if there are any NaNs in the dcpp model data
+    if np.isnan(dcpp_model_data).any():
+        raise ValueError("DCPP model data contains NaNs.")
+    
+    # Check if there are any NaNs in the historical model data
+    if np.isnan(historical_model_data).any():
+        raise ValueError("Historical model data contains NaNs.")
+    
+    # Check that the shapes are correct
+    dcpp_model_data_shape = dcpp_model_data[0, :, :, :]
+    historical_model_data_shape = historical_model_data[0, :, :, :]
+
+    # check that the shapes are the same
+    if observed_data.shape != dcpp_model_data_shape.shape != historical_model_data_shape.shape:
+        raise ValueError("Observed data, dcpp model data and historical model data must have the same shape.")
+    
+    # Now we want to create empty arrays for the bootstrapped rfield_diff and pfield_diff values
+    rfield_diff = np.empty([n_bootstraps, len(lat), len(lon)])
+    pfield_diff = np.empty([n_bootstraps, len(lat), len(lon)])
+
+    # Print the shapes of the rfield_diff and pfield_diff arrays
+    print("rfield_diff array shape", np.shape(rfield_diff))
+    print("pfield_diff array shape", np.shape(pfield_diff))
+
+    # Check that dcpp model years is the same as dcpp_model_data.shape[1]
+    if dcpp_model_years != dcpp_model_data.shape[1]:
+        raise ValueError("DCPP model years must be the same as dcpp_model_data.shape[1].")
+
+    # Set up the number of validation years
+    n_validation_years = dcpp_model_years
+
+    # Set up the number of ensemble members
+    # for the dcpp model data
+    m_ensemble_members_dcpp = dcpp_ensemble_members.shape[0]
+
+    # Set up the number of ensemble members
+    # for the historical model data
+    m_ensemble_members_historical = historical_ensemble_members.shape[0]
+
+    # Set up the block size for the autocorrelation
+    block_size = 5 # years
+
+    # Loop over the bootstraps
+    for i in range(n_bootstraps):
+        # print the bootstrap number
+        print("bootstrap number", i)
+
+        # Randomly select block start indices
+        block_starts = resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
+
+        # Create indices for the entire blocks
+        block_indices = []
+        for start in block_starts:
+            block_indices.extend(range(start, start + block_size))
+
+        # Ensure we have exactly N indices (with replacement)
+        if len(block_indices) < n_validation_years:
+            block_indices.extend(resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
+
+        # # Print the block indices shape
+        print("block indices shape", np.shape(block_indices))
+
+        # # Print the block indices
+        print("block indices", block_indices)
+
+        # Create a mask for the selected block indices
+        mask = np.zeros(n_validation_years, dtype=bool)
+        mask[block_indices] = True
+
+        # Apply the mask to select the corresponding block of data for the dcpp model data
+        n_mask_dcpp_model_data = dcpp_model_data[:, mask, :, :]
+        # Apply the mask to select the corresponding block of data for the historical model data
+        n_mask_historical_model_data = historical_model_data[:, mask, :, :]
+
+        # Next, for each case, randomly select M ensemble members with replacement.
+        # For the dcpp model data
+        ensemble_resampled_dcpp = resample(n_mask_dcpp_model_data, n_samples=m_ensemble_members_dcpp, replace=True)
+
+        # For the historical model data
+        ensemble_resampled_historical = resample(n_mask_historical_model_data, n_samples=m_ensemble_members_historical, replace=True)
+
+        # Calculate the ensemble mean for each case
+        ensemble_mean_dcpp = np.mean(ensemble_resampled_dcpp, axis=0)
+        ensemble_mean_historical = np.mean(ensemble_resampled_historical, axis=0)
+
+
 
 
 # Define a new function which will calculate the differences in spatial correlations
