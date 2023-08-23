@@ -22,6 +22,7 @@ import multiprocessing
 import dask.array as da
 import dask.distributed as dd
 import dask
+import sklearn as sk
 
 # Import CDO
 from cdo import *
@@ -1020,13 +1021,118 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # so we will have 1000 correlation coefficients and p-values
     # for each grid point
     # create an empty array for the p-values
-    pfield = np.empty([n_bootstraps, len(observed_data[0, :, 0, 0]), len(observed_data[0, 0, :, 0]), len(observed_data[0, 0, 0, :])])
+    # dim = (1000, lat, lon)
+    pfield_dist = np.empty([n_bootstraps, len(observed_data[0, :, 0]), len(observed_data[0, 0, :])])
     # create an empty array for the correlation coefficients
-    rfield = np.empty([n_bootstraps, len(observed_data[0, :, 0, 0]), len(observed_data[0, 0, :, 0]), len(observed_data[0, 0, 0, :])])
+    rfield_dist = np.empty([n_bootstraps, len(observed_data[0, :, 0]), len(observed_data[0, 0, :])])
 
     # Print the shapes of the pfield and rfield arrays
     print("pfield array shape", np.shape(pfield))
     print("rfield array shape", np.shape(rfield))
+
+    # Print the types of the pfield and rfield arrays
+    print("pfield array type", type(pfield))
+    print("rfield array type", type(rfield))
+
+    # Extract the number of validation years
+    # this is the second dimension of the model data
+    n_validation_years = len(model_data[0, :, 0, 0])
+
+    # Extract the number of ensemble members
+    # this is the first dimension of the model data
+    m_ensemble_members = len(model_data[:, 0, 0, 0])
+
+    # set up the block size for the autocorrelation
+    block_size = 5 # years
+
+    # First we want to loop over the bootstraps
+    for i in range(n_bootstraps):
+        # Randomly select N cases (validation years) with replacement.
+        # To take autocorrelation into account, this is done in blocks of five consecutive years.
+        # Create 
+
+        # Randomly select block start indices
+        block_starts = sk.resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
+
+        # Create indices for the entire blocks
+        block_indices = []
+        for start in block_starts:
+            block_indices.extend(range(start, start + block_size))
+
+        # Ensure we have exactly N indices (with replacement)
+        if len(block_indices) < n_validation_years:
+            block_indices.extend(sk.resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
+
+        # Print the block indices shape
+        print("block indices shape", np.shape(block_indices))
+
+        # Print the block indices
+        print("block indices", block_indices)
+
+        # Create a mask for the selected block indices
+        mask = np.zeros(n_validation_years, dtype=bool)
+        mask[block_indices] = True
+
+        # Apply the mask to select the corresponding block of data
+        n_mask_model_data = model_data[:, mask, :, :]
+
+        # Next, for each case, randomly select M ensemble members with replacement.
+        ensemble_resampled = sk.resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
+
+        # Calculate the ensemble mean for each case
+        ensemble_mean = np.mean(ensemble_resampled, axis=0)
+
+        # Print the dimensions of the ensemble mean
+        print("ensemble mean shape", np.shape(ensemble_mean))
+        print("observed data shape", np.shape(observed_data))
+
+        # Calculate the correlation coefficient and p-value for each case
+        # First create empty arrays for the correlation coefficients and p-values
+        # for brevity set up the lats and lons
+        lats = observed_data[0, :, 0]
+        lons = observed_data[0, 0, :]
+        # Now set up the empty arrays for rfield and pfield
+        rfield = np.empty([len(lats), len(lons)])
+        pfield = np.empty([len(lats), len(lons)])
+        # now loop over the lats and lons
+        for y in range(len(lats)):
+            for x in range(len(lons)):
+                # set up the obs and model data
+                obs = observed_data[:, y, x]
+                mod = ensemble_mean[:, y, x]
+
+                # Calculate the correlation coefficient and p-value
+                r, p = stats.pearsonr(obs, mod)
+
+                # # If the correlation coefficient is negative, set the p-value to NaN
+                # if r < 0:
+                #     p = np.nan
+
+                # Append the correlation coefficient and p-value to the arrays
+                rfield[y, x], pfield[y, x] = r, p
+    
+        # append the correlation coefficients and p-values to the arrays
+        rfield_dist[i, :, :] = rfield
+        pfield_dist[i, :, :] = pfield
+
+    # Print the shapes of the pfield and rfield arrays
+    print("pfield array shape", np.shape(pfield_dist))
+    print("rfield array shape", np.shape(rfield_dist))
+
+    # Print the types of the pfield and rfield arrays
+    print("pfield array type", type(pfield_dist))
+    print("rfield array type", type(rfield_dist))
+        
+
+
+
+# ensemble_means now contains the ensemble means for each case, for each bootstrap iteration.
+
+
+
+    # bootstrapped_samples now contains your bootstrapped samples,
+    # where each sample is a block of five consecutive years for all ensemble members and features.
+
 
 
 # Define a new function which will calculate the differences in spatial correlations
