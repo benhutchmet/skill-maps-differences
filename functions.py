@@ -451,6 +451,120 @@ def constrain_years_processed_hist(model_data, models):
 
     return constrained_data
 
+
+# Define a new function to constrain the years of the initialized data and the uninitialized data
+# to ensure that the years are the same for both
+def constrain_years_init_uninit(dcpp_model_data, historical_model_data, dcpp_models, historical_models):
+    """
+    Constrain the years of the initialized data and the uninitialized data to ensure that the years are the same for both.
+
+    This function takes the initialized and uninitialized data and constrains the years to the years that are in both
+    datasets. It then returns the constrained datasets as a tuple.
+
+    Parameters
+    ----------
+    dcpp_model_data : list of xarray.Dataset
+        The initialized model data to constrain.
+    historical_model_data : list of xarray.Dataset
+        The uninitialized model data to constrain.
+    dcpp_models : list of str
+        The names of the initialized models.
+    historical_models : list of str
+        The names of the uninitialized models.
+
+    Returns
+    -------
+    tuple of list of xarray.Dataset
+        The initialized and uninitialized data with the years constrained to the years that are in both datasets.
+    """
+
+    # Initialize a list to store the years for each model
+    dcpp_years_list = []
+    historical_years_list = []
+
+    # Loop over the dcpp models to complete the dcpp years list
+    for model in dcpp_models:
+        dcpp_model_data_extracted = dcpp_model_data[model]
+        # Loop over the ensemble members in the model data
+        for member in dcpp_model_data_extracted:
+            # Extract the years
+            dcpp_years = member.time.dt.year.values
+
+            # Append the years to the list of years
+            dcpp_years_list.append(dcpp_years)
+
+    # Loop over the historical models to complete the historical years list
+    for model in historical_models:
+        historical_model_data_extracted = historical_model_data[model]
+        # Loop over the ensemble members in the model data
+        for member in historical_model_data_extracted:
+            # Extract the years
+            historical_years = member.time.dt.year.values
+
+            # Append the years to the list of years
+            historical_years_list.append(historical_years)
+
+    # print the first value of the dcpp years list
+    print("dcpp years list", dcpp_years_list[0])
+    # print the first value of the historical years list
+    print("historical years list", historical_years_list[0])
+
+    # Find the years that are in both the dcpp and historical models
+    common_years = list(set(dcpp_years_list[0]).intersection(*dcpp_years_list))
+
+    # Print the common years for debugging
+    print("Common years:", common_years)
+
+    # Initiliaze dictionaries to store the constrained data
+    constrained_dcpp_data = {}
+    constrained_historical_data = {}
+
+    # Loop over the dcpp models
+    for model in dcpp_models:
+        # Extract the model data
+        dcpp_model_data_extracted = dcpp_model_data[model]
+
+        # Loop over the ensemble members in the model data
+        for member in dcpp_model_data_extracted:
+            # Extract the years
+            dcpp_years = member.time.dt.year.values
+
+            # Find the years that are in both the model data and the common years
+            years_in_both = np.intersect1d(dcpp_years, common_years)
+
+            # Select only those years from the model data
+            member = member.sel(time=member.time.dt.year.isin(years_in_both))
+
+            # Add the member to the constrained data dictionary
+            if model not in constrained_dcpp_data:
+                constrained_dcpp_data[model] = []
+            constrained_dcpp_data[model].append(member)
+
+    # Loop over the historical models
+    for model in historical_models:
+        # Extract the model data
+        historical_model_data_extracted = historical_model_data[model]
+
+        # Loop over the ensemble members in the model data
+        for member in historical_model_data_extracted:
+            # Extract the years
+            historical_years = member.time.dt.year.values
+
+            # Find the years that are in both the model data and the common years
+            years_in_both = np.intersect1d(historical_years, common_years)
+
+            # Select only those years from the model data
+            member = member.sel(time=member.time.dt.year.isin(years_in_both))
+
+            # Add the member to the constrained data dictionary
+            if model not in constrained_historical_data:
+                constrained_historical_data[model] = []
+            constrained_historical_data[model].append(member)
+
+    # Return the constrained data
+    return constrained_dcpp_data, constrained_historical_data
+
+
 # Function to remove years with Nans
 # checking for Nans in observed data
 def remove_years_with_nans(observed_data, dcpp_ensemble_mean, historical_ensemble_mean, variable):
@@ -708,7 +822,7 @@ def extract_ensemble_members(model_data, models, ensemble_members, ensemble_memb
     model_years : numpy.ndarray
         The years for the model data.
     """
-    
+
     # Loop over the models
     for model in models:
         # Extract the model data
@@ -785,6 +899,13 @@ def process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcp
     # for both the initialized and uninitialized data
     dcpp_model_data = constrain_years_processed_hist(dcpp_model_data, dcpp_models)
     historical_model_data = constrain_years_processed_hist(historical_model_data, historical_models)
+
+    # Extract the ensemble members for the initialized data
+    dcpp_ensemble_members, lat, lon, dcpp_model_years, dcpp_ensemble_members_count = extract_ensemble_members(dcpp_model_data, dcpp_models, dcpp_ensemble_members, dcpp_ensemble_members_count)
+
+    # Extract the ensemble members for the uninitialized data
+    historical_ensemble_members, _, _, historical_model_years, historical_ensemble_members_count = extract_ensemble_members(historical_model_data, historical_models, historical_ensemble_members, historical_ensemble_members_count)
+
 
 
 
