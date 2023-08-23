@@ -944,12 +944,21 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # Extract the years from the observed data
     obs_years = observed_data.time.dt.year.values
 
-    # Print the years extracted from the observed data
-    print("observed years", obs_years)
-    # print obs_years shape
-    print("observed years shape", np.shape(obs_years))
-    # print obs_years type
-    print("observed years type", type(obs_years))
+    # Remove the years containing NaNs
+    for year in obs_years:
+        # Extract the data for the year
+        data = observed_data.sel(time=f"{year}")
+
+        # If there are any Nan values in the data
+        if np.isnan(data.values).any():
+            # Print the year
+            print(year)
+
+            # Select the year from the observed data
+            observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
+
+    # extract the years from the observed data
+    obs_years = observed_data.time.dt.year.values
 
     # Use the function ======= to convert the model data to a numpy array
     # use the function process_model_data_for_plot for this
@@ -962,6 +971,34 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # print model_years type
     print("model years type", type(model_years))
 
+    # Print the observed years
+    # Print the years extracted from the observed data
+    print("observed years", obs_years)
+    # print obs_years shape
+    print("observed years shape", np.shape(obs_years))
+    # print obs_years type
+    print("observed years type", type(obs_years))
+
+    # constrain the years to the years that are in both the observed and model data
+    # FIXME: Hardcoded for dcpp data
+    obs_years = obs_years[3:]
+
+    # print the shape of the observed years
+    print("observed years shape", np.shape(obs_years))
+    print("model years shape", np.shape(model_years))
+
+    # print the years that are in both the observed and model data
+    print("obs years", obs_years)
+    print("model years", model_years)
+
+    # if observed data is not a numpy array
+    if type(observed_data) != np.ndarray:
+        print("observed data is not a numpy array")
+        # convert observed data to a numpy array
+        observed_data = observed_data.values
+        # constrain the years to the years that are in both the observed and model data
+        observed_data = observed_data[3:, :, :]
+
     # Print the types of the observed and model data
     print("observed data type", type(observed_data))
     print("model data type", type(model_data))
@@ -973,41 +1010,19 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # print the values of the observed and model data
     # print("observed data", observed_data)
     # print("model data", model_data)
-
-    # print the values in the first dimension of the observed and model data
-    print("observed data first dimension", observed_data[:, 0, 0])
     
     # Check that the observed and model data have the same type
     if type(observed_data) != type(model_data):
         raise ValueError("Observed data and model data must have the same type.")
     
-    # We want to make sure that the observed and model data are valid
-    # for the same years
-    # Extract the years from the observed data
-    # this is the first dimension of the observed data
-    obs_years = observed_data[:, 0, 0]
-
-    # Extract the years from the model data
-    # this is the second dimension of the model data
-    model_years = model_data[0, :, 0, 0]
 
     # Print the years extracted from the observed and model data
     print("observed years", obs_years)
     print("model years", model_years)
 
-    # Find the years that are in both the observed and model data
-    years_in_both = np.intersect1d(obs_years, model_years)
-
-    # Print the years that are in both the observed and model data
-    print("years in both", years_in_both)
-
-    # Select only the years that are in both the observed and model data
-    observed_data = observed_data[np.in1d(observed_data[:, 0, 0], years_in_both)]
-    model_data = model_data[np.in1d(model_data[0, :, 0, 0], years_in_both)]
-
     # Print the values of each to check
-    print("observed data year constrained", observed_data)
-    print("model data year constrained", model_data)
+    print("observed data year constrained", np.shape(observed_data))
+    print("model data year constrained", np.shape(model_data))
 
     # Now we want to check that there are no NaNs in the observed and model data
     # FIXME: if there are Nans then we should use the function to get rid of these
