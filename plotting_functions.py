@@ -150,7 +150,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
 
     # Add filled contours
     # Contour levels
-    clevs = np.arange(-1, 1.1, 0.1)
+    clevs = np.arange(-1.5, 1.5, 0.1)
     # Contour levels for p-values
     clevs_p = np.arange(0, 1.1, 0.1)
     # Plot the filled contours
@@ -340,6 +340,14 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     # with the same shape as rfield_diff
     pfield_diff = np.empty_like(rfield_diff)
 
+    # print the shape of pfield_diff
+    print("pfield_diff shape", pfield_diff.shape)
+    # print the shape of rfield_diff
+    print("rfield_diff shape", rfield_diff.shape)
+
+    # print the values of pfield_diff
+    print("pfield_diff values", pfield_diff)
+
     # create a list of the rfield_init and rfield_uninit to be plotted
     rfield_list = [rfield_init, rfield_uninit, rfield_diff]
 
@@ -366,9 +374,9 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
         # print the pfield
         pfield = pfield_list[i]
 
-        # Print the r and p fields
-        print("plotting rfield", rfield)
-        print("plotting pfield", pfield)
+        # # Print the r and p fields
+        # print("plotting rfield", rfield)
+        # print("plotting pfield", pfield)
 
         # set up the axes
         ax = axs[i]
@@ -382,7 +390,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
         # add filled contours
         # Contour levels
-        clevs = np.arange(-1, 1.1, 0.1)
+        clevs = np.arange(-1, 1.5, 0.1)
         # Contour levels for p-values
         clevs_p = np.arange(0, 1.1, 0.1)
         # Plot the filled contours
