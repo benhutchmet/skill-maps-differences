@@ -30,6 +30,9 @@ cdo = Cdo()
 # Import the dictionaries
 import dictionaries as dic
 
+# General todos
+# TODO: incorporate bootstrapping for significance testing
+
 # Define a new function to load the processed historical data
 # This function will take as arguments: the base directory 
 # where the data are stored, the models, the variable name, the region name, the forecast range and the season.
@@ -861,9 +864,8 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
 
     # Calculate the p-values for the differences between the initialized and uninitialized data
     # Set up an empty array for the t-statistic
-    t_stat = np.empty([len(obs_lat), len(obs_lon)])
-    p_values = np.empty([len(obs_lat), len(obs_lon)])
-
+    zeros_data = 
+    
     # Loop over the latitudes and longitudes
     for y in range(len(obs_lat)):
         for x in range(len(obs_lon)):
