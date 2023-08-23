@@ -1090,11 +1090,17 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # set up the block size for the autocorrelation
     block_size = 5 # years
 
+    # Save the original model data
+    model_data_original = model_data.copy()
+
     # First we want to loop over the bootstraps
     for i in range(n_bootstraps):
         # Randomly select N cases (validation years) with replacement.
         # To take autocorrelation into account, this is done in blocks of five consecutive years.
         # Create 
+
+        # print the number bootstrap
+        print("bootstrap number", i)
 
         # Randomly select block start indices
         block_starts = resample(range(0, n_validation_years - block_size + 1, block_size), n_samples=n_validation_years//block_size, replace=True)
@@ -1108,11 +1114,11 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         if len(block_indices) < n_validation_years:
             block_indices.extend(resample(block_indices, n_samples=n_validation_years-len(block_indices), replace=True))
 
-        # Print the block indices shape
-        print("block indices shape", np.shape(block_indices))
+        # # Print the block indices shape
+        # print("block indices shape", np.shape(block_indices))
 
-        # Print the block indices
-        print("block indices", block_indices)
+        # # Print the block indices
+        # print("block indices", block_indices)
 
         # Create a mask for the selected block indices
         mask = np.zeros(n_validation_years, dtype=bool)
@@ -1126,12 +1132,22 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
         # Next, for each case, randomly select M ensemble members with replacement.
         ensemble_resampled = resample(n_mask_model_data, n_samples=m_ensemble_members, replace=True)
 
+        # # Print the dimensions of the ensemble resampled
+        # print("ensemble resampled shape", np.shape(ensemble_resampled))
+        # print("model data original shape masked", np.shape(model_data_original[:, mask, :, :]))
+
+        # # Check if ensemble_resampled is different from model_data
+        # if not np.array_equal(ensemble_resampled, model_data_original[:, mask, :, :]):
+        #     print("Ensemble has been resampled")
+        # else:
+        #     print("Ensemble has not been resampled")
+
         # Calculate the ensemble mean for each case
         ensemble_mean = np.mean(ensemble_resampled, axis=0)
 
-        # Print the dimensions of the ensemble mean
-        print("ensemble mean shape", np.shape(ensemble_mean))
-        print("observed data shape", np.shape(n_mask_observed_data))
+        # # Print the dimensions of the ensemble mean
+        # print("ensemble mean shape", np.shape(ensemble_mean))
+        # print("observed data shape", np.shape(n_mask_observed_data))
 
         # Calculate the correlation coefficient and p-value for each case
         # First create empty arrays for the correlation coefficients and p-values
