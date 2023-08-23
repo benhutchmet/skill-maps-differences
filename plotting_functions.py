@@ -150,7 +150,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
 
     # Add filled contours
     # Contour levels
-    clevs = np.arange(-1.5, 1.5, 0.1)
+    clevs = np.arange(-1.8, 1.8, 0.1)
     # Contour levels for p-values
     clevs_p = np.arange(0, 1.1, 0.1)
     # Plot the filled contours
@@ -390,7 +390,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
         # add filled contours
         # Contour levels
-        clevs = np.arange(-1, 1.5, 0.1)
+        clevs = np.arange(-1.8, 1.8, 0.1)
         # Contour levels for p-values
         clevs_p = np.arange(0, 1.1, 0.1)
         # Plot the filled contours
@@ -645,7 +645,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
         # Add filled contours
         # Contour levels
-        clevs = np.arange(-1, 1.1, 0.1)
+        clevs = np.arange(-1.8, 1.8, 0.1)
         # Contour levels for p-values
         clevs_p = np.arange(0, 1.1, 0.1)
         # Plot the filled contours
