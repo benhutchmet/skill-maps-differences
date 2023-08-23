@@ -223,7 +223,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # Show the figure
     plt.show()
 
-
+# TODO: Include the bootstrapped p-values in the plot
 # Define a function to plot subplots of the correlation coefficients and p-values for the init vs uninitialized models
 def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_model_data, init_models, uninit_models, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig=0.05):
     """Plot the correlation coefficients and p-values for the init vs uninitialized models."""

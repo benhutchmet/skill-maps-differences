@@ -633,7 +633,7 @@ def process_model_data_for_plot(model_data, models, observed_data):
             lon = member.lon.values
 
             # Extract the years
-            years = member.time.dt.year.values
+            model_years = member.time.dt.year.values
 
             # Print statements for debugging
             # print('shape of years', np.shape(years))
@@ -643,7 +643,10 @@ def process_model_data_for_plot(model_data, models, observed_data):
             ensemble_members_count[model] += 1
 
     # constrain the years of the observed data
-    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years))
+    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(model_years))
+
+    # Extract the years from the observed data
+    obs_years = observed_data.time.dt.year.values
 
     # Convert observed_data to a numpy array
     if type(observed_data) != np.ndarray:
@@ -673,7 +676,7 @@ def process_model_data_for_plot(model_data, models, observed_data):
     # Convert ensemble_mean to an xarray DataArray
     ensemble_mean = xr.DataArray(ensemble_mean, coords=member.coords, dims=member.dims)
 
-    return ensemble_mean, ensemble_members, observed_data, lat, lon, years, ensemble_members_count
+    return ensemble_mean, ensemble_members, observed_data, lat, lon, model_years, obs_years, ensemble_members_count
 
 # checking for Nans in observed data
 def remove_years_with_nans_original(observed_data, ensemble_mean, variable):
@@ -917,7 +920,6 @@ def calculate_correlations_diff(observed_data, init_model_data, uninit_model_dat
 # This function takes as input the observed data and the model data
 # as well as the models being used and the variable name
 # and returns the field of p-values for the spatial correlations
-# TODO: fix this hardcoding issue
 def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, variable, n_bootstraps=1000, experiment=None):
     """
     The method involves creating 1,000 bootstrapped hindcasts from a finite ensemble size and a finite number of validation years. 
@@ -972,12 +974,9 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
             # Select the year from the observed data
             observed_data = observed_data.sel(time=observed_data.time.dt.year != year)
 
-    # extract the years from the observed data
-    obs_years = observed_data.time.dt.year.values
-
     # Use the function ======= to convert the model data to a numpy array
     # use the function process_model_data_for_plot for this
-    _, model_data, observed_data, _, _, model_years, ensemble_members_count = process_model_data_for_plot(model_data, models, observed_data)
+    _, model_data, observed_data, _, _, model_years, obs_years, ensemble_members_count = process_model_data_for_plot(model_data, models, observed_data)
 
     # if observed data is not a numpy array
     if type(observed_data) != np.ndarray:
