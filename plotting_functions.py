@@ -339,6 +339,8 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     # Set up pfield diff as an array of Nan's
     # with the same shape as rfield_diff
     pfield_diff = np.empty_like(rfield_diff)
+    # Fill pfield_diff with nan's
+    pfield_diff.fill(np.nan)
 
     # print the shape of pfield_diff
     print("pfield_diff shape", pfield_diff.shape)
