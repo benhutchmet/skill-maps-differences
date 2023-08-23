@@ -941,15 +941,26 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     print("observed data shape", np.shape(observed_data))
     print("model data shape", len(model_data))
 
-    # First we need to make sure that both of these are numpy arrays
-    if type(observed_data) != np.ndarray:
-        print("observed data not a numpy array")
-        # Convert the observed data to a numpy array
-        observed_data = observed_data.values
+    # Extract the years from the observed data
+    obs_years = observed_data.time.dt.year.values
+
+    # Print the years extracted from the observed data
+    print("observed years", obs_years)
+    # print obs_years shape
+    print("observed years shape", np.shape(obs_years))
+    # print obs_years type
+    print("observed years type", type(obs_years))
 
     # Use the function ======= to convert the model data to a numpy array
     # use the function process_model_data_for_plot for this
-    _, model_data, _, _, _, ensemble_members_count = process_model_data_for_plot(model_data, models)
+    _, model_data, _, _, model_years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+
+    # print the model years
+    print("model years", model_years)
+    # print model_years shape
+    print("model years shape", np.shape(model_years))
+    # print model_years type
+    print("model years type", type(model_years))
 
     # Print the types of the observed and model data
     print("observed data type", type(observed_data))
@@ -958,6 +969,13 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # Print the shapes of the observed and model data
     print("observed data shape", np.shape(observed_data))
     print("model data shape", np.shape(model_data))
+
+    # print the values of the observed and model data
+    # print("observed data", observed_data)
+    # print("model data", model_data)
+
+    # print the values in the first dimension of the observed and model data
+    print("observed data first dimension", observed_data[:, 0, 0])
     
     # Check that the observed and model data have the same type
     if type(observed_data) != type(model_data):
@@ -984,8 +1002,12 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     print("years in both", years_in_both)
 
     # Select only the years that are in both the observed and model data
-    observed_data = observed_data[observed_data[:, 0, 0].isin(years_in_both)]
-    model_data = model_data[model_data[0, :, 0, 0].isin(years_in_both)]
+    observed_data = observed_data[np.in1d(observed_data[:, 0, 0], years_in_both)]
+    model_data = model_data[np.in1d(model_data[0, :, 0, 0], years_in_both)]
+
+    # Print the values of each to check
+    print("observed data year constrained", observed_data)
+    print("model data year constrained", model_data)
 
     # Now we want to check that there are no NaNs in the observed and model data
     # FIXME: if there are Nans then we should use the function to get rid of these
@@ -994,6 +1016,7 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     
     if np.isnan(model_data).any():
         raise ValueError("Model data contains NaNs.")
+    
     
     # Now we want to check that the observed and model data have the same shape
     # for all dimensions of the observed data
