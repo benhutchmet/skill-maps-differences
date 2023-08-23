@@ -243,6 +243,9 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
                                                                                 uninit_model_data, uninit_models,
                                                                                     variable)
 
+    # Calculate the difference between the init and uninit rfields
+    rfield_diff = rfield_init - rfield_uninit                                                                                
+
     # Print the types of the rfield_init and rfield_uninit
     print("rfield_init type", type(rfield_init))
     print("rfield_uninit type", type(rfield_uninit))
@@ -333,16 +336,21 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     else:
         total_no_members = None
 
+    # Set up pfield diff as an array of Nan's
+    # with the same shape as rfield_diff
+    pfield_diff = np.empty_like(rfield_diff)
 
     # create a list of the rfield_init and rfield_uninit to be plotted
-    rfield_list = [rfield_init, rfield_uninit]
+    rfield_list = [rfield_init, rfield_uninit, rfield_diff]
 
     # same for the pfield_init and pfield_uninit
-    pfield_list = [pfield_init, pfield_uninit]
+    pfield_list = [pfield_init, pfield_uninit, pfield_diff]
 
 
     # Set up the figure as two subplots (1 row, 2 columns)
-    fig, axs = plt.subplots(nrows=1, ncols=2, figsize=(18, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(18, 10), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    # Remove the last subplot
+    axs[-1, -1].remove()
 
     # flatten the axs array
     axs = axs.flatten()
@@ -408,6 +416,11 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
             # in the bottom right
             # for the number of ensemble members
             ax.text(0.95, 0.05, f"N = {total_no_members_uninit}", transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+        elif i == 2:
+            # Add a textbox for the third subplot
+            # in the top left
+            # with 'dcppA - historical' in it
+            ax.text(0.05, 0.95, 'init - uninit', transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
         else:
             print("Error: subplot not found")
 
