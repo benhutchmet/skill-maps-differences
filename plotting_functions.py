@@ -247,20 +247,29 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     rfield_diff = rfield_init - rfield_uninit                                                                                
 
     # Print the types of the rfield_init and rfield_uninit
-    print("rfield_init type", type(rfield_init))
-    print("rfield_uninit type", type(rfield_uninit))
+    # print("rfield_init type", type(rfield_init))
+    # print("rfield_uninit type", type(rfield_uninit))
 
-    # print the types of the pfield_init and pfield_uninit
-    print("pfield_init type", type(pfield_init))
-    print("pfield_uninit type", type(pfield_uninit))
+    # # print the types of the pfield_init and pfield_uninit
+    # print("pfield_init type", type(pfield_init))
+    # print("pfield_uninit type", type(pfield_uninit))
 
-    # print the shapes of the rfield_init and rfield_uninit
-    print("rfield_init shape", rfield_init.shape)
-    print("rfield_uninit shape", rfield_uninit.shape)
+    # # print the shapes of the rfield_init and rfield_uninit
+    # print("rfield_init shape", rfield_init.shape)
+    # print("rfield_uninit shape", rfield_uninit.shape)
 
-    # print the values of the rfield_init and rfield_uninit
-    print("rfield_init values", rfield_init)
-    print("rfield_uninit values", rfield_uninit)
+    # # print the values of the rfield_init and rfield_uninit
+    # print("rfield_init values", rfield_init)
+    # print("rfield_uninit values", rfield_uninit)
+
+    # Calculate the bootstrapped p-values for the init and uninit models
+    # first for the initialized models - dcppA-hindcast
+    # Only do 100 bootstraps for now
+    pfield_bs_dcpp = fnc.calculate_spatial_correlations_bootstrap(observed_data, init_model_data, init_models, variable, n_bootstraps=100)
+
+    # Then for the uninitialized models - historical
+    # Only do 100 bootstraps for now
+    pfield_bs_hist = fnc.calculate_spatial_correlations_bootstrap(observed_data, uninit_model_data, uninit_models, variable, n_bootstraps=100)
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
@@ -351,14 +360,14 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     print("pfield_diff values", pfield_diff)
 
     # create a list of the rfield_init and rfield_uninit to be plotted
-    rfield_list = [rfield_init, rfield_uninit, rfield_diff]
+    rfield_list = [rfield_init, rfield_uninit, rfield_init, rfield_uninit, rfield_diff]
 
     # same for the pfield_init and pfield_uninit
-    pfield_list = [pfield_init, pfield_uninit, pfield_diff]
+    pfield_list = [pfield_init, pfield_uninit, pfield_bs_dcpp, pfield_bs_hist, pfield_diff]
 
 
     # Set up the figure as two subplots (1 row, 2 columns)
-    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(18, 10), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(18, 10), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
     # Remove the last subplot
     axs[-1, -1].remove()
 
@@ -427,6 +436,16 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
             # for the number of ensemble members
             ax.text(0.95, 0.05, f"N = {total_no_members_uninit}", transform=ax.transAxes, fontsize=10, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
         elif i == 2:
+            # Add a textbox for the third subplot
+            # in the top left
+            # with 'dcppA - historical' in it
+            ax.text(0.05, 0.95, 'dcppA (bs pvalues)', transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+        elif i == 3:
+            # Add a textbox for the third subplot
+            # in the top left
+            # with 'dcppA - historical' in it
+            ax.text(0.05, 0.95, 'historical (bs pvalues)', transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', ha='left', bbox=dict(facecolor='white', alpha=0.5))
+        elif i == 4:
             # Add a textbox for the third subplot
             # in the top left
             # with 'dcppA - historical' in it
