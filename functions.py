@@ -1788,10 +1788,10 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
     """
 
     # First process the dcpp model data to get the ensemble mean
-    dcpp_ensemble_mean, dcpp_ensemble_members, dcpp_lat, dcpp_lon, dcpp_years, dcpp_ensemble_members_count = process_model_data_for_plot(dcpp_model_data, dcpp_models)
+    dcpp_ensemble_mean, dcpp_ensemble_members, _, dcpp_lat, dcpp_lon, dcpp_years, _, dcpp_ensemble_members_count = process_model_data_for_plot(dcpp_model_data, dcpp_models, observed_data)
 
     # Then process the historical model data to get the ensemble mean
-    historical_ensemble_mean, historical_ensemble_members, historical_lat, historical_lon, historical_years, historical_ensemble_members_count = process_model_data_for_plot(historical_model_data, historical_models)
+    historical_ensemble_mean, historical_ensemble_members, _, historical_lat, historical_lon, historical_years, _, historical_ensemble_members_count = process_model_data_for_plot(historical_model_data, historical_models, observed_data)
 
     # Extract the lat and lon values from the observed data
     # Because of how the data has been processed using cdo and gridspec files,

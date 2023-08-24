@@ -163,7 +163,7 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # print("pfield mod", pfield)
 
     # Add stippling where rfield is significantly different from zero
-    # plt.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
+    plt.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
     # Add colorbar
     cbar = plt.colorbar(cf, orientation='horizontal', pad=0.05, aspect=50)
