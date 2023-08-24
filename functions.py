@@ -1492,6 +1492,48 @@ def calculate_spatial_correlations_bootstrap(observed_data, model_data, models, 
     # Return the p-values
     return pfield_bootstrap
 
+# Define a function used to calculate the spatial correlations given the ensemble mean
+def calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean, lats, lons):
+    """
+    Calculate the correlation coefficient and p-value for each case.
+
+    This function takes the observed data, ensemble mean, lats, and lons and calculates the correlation coefficient
+    and p-value for each case. It returns the correlation coefficient and p-value as two 2D arrays.
+
+    Parameters
+    ----------
+    n_mask_observed_data : numpy.ndarray
+        The observed data to use for calculating the correlation coefficient.
+    ensemble_mean : numpy.ndarray
+        The ensemble mean to use for calculating the correlation coefficient.
+    lats : numpy.ndarray
+        The latitudes to use for calculating the correlation coefficient.
+    lons : numpy.ndarray
+        The longitudes to use for calculating the correlation coefficient.
+
+    Returns
+    -------
+    tuple of numpy.ndarray
+        The correlation coefficient and p-value as two 2D arrays.
+    """
+    # Set up the empty arrays for rfield and pfield
+    rfield = np.empty([len(lats), len(lons)])
+    pfield = np.empty([len(lats), len(lons)])
+
+    # Loop over the lats and lons
+    for y in range(len(lats)):
+        for x in range(len(lons)):
+            # Set up the obs and model data
+            obs = n_mask_observed_data[:, y, x]
+            mod = ensemble_mean[:, y, x]
+
+            # Calculate the correlation coefficient and p-value
+            r, p = stats.pearsonr(obs, mod)
+
+            # Append the correlation coefficient and p-value to the arrays
+            rfield[y, x], pfield[y, x] = r, p
+
+    return rfield, pfield
 
 # Define a new function to calculate the bootstrapped p-values for the differences in spatial correlations
 # Between the initialized (dcpp data) and the uninitialized (historical data)
@@ -1626,6 +1668,15 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
         # Calculate the ensemble mean for each case
         ensemble_mean_dcpp = np.mean(ensemble_resampled_dcpp, axis=0)
         ensemble_mean_historical = np.mean(ensemble_resampled_historical, axis=0)
+
+        # Calculate the correlation coefficient and p-value for each case
+        # Use the function calculate_correlation_coefficient to do this
+        # First for the dcpp model data
+        rfield_dcpp, pfield_dcpp = calculate_correlation_coefficient(observed_data, ensemble_mean_dcpp, lat, lon)
+
+        # Then for the historical model data
+        rfield_historical, pfield_historical = calculate_correlation_coefficient(observed_data, ensemble_mean_historical, lat, lon)
+
 
 
 
