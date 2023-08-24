@@ -367,7 +367,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
 
     # Set up the figure as two subplots (1 row, 2 columns)
-    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(20, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(8, 12), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
     # Remove the last subplot
     axs[-1, -1].remove()
 
