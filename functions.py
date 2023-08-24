@@ -516,7 +516,7 @@ def constrain_years_init_uninit(dcpp_model_data, historical_model_data, dcpp_mod
     print("historical years list", historical_years_list[0])
 
     # Find the years that are in both the dcpp and historical models
-    common_years = list(set(dcpp_years_list[0]).intersection(historical_years_list))
+    common_years = list(set(dcpp_years_list[0]).intersection(*historical_years_list))
 
     # Print the common years for debugging
     print("Common years:", common_years)
@@ -1585,29 +1585,29 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
 
     # Print the types of the observed and model data
     print("observed data type", type(observed_data))
-    print("dcpp model data type", type(dcpp_model_data))
-    print("historical model data type", type(historical_model_data))
+    print("dcpp model data type", type(dcpp_ensemble_members))
+    print("historical model data type", type(historical_ensemble_members))
 
     # Print the shapes of the observed and model data
     print("observed data shape", np.shape(observed_data))
-    print("dcpp model data shape", np.shape(dcpp_model_data))
-    print("historical model data shape", np.shape(historical_model_data))
+    print("dcpp model data shape", np.shape(dcpp_ensemble_members))
+    print("historical model data shape", np.shape(historical_ensemble_members))
 
     # Check if there are any NaNs in the observed data
     if np.isnan(observed_data).any():
         raise ValueError("Observed data contains NaNs.")
     
     # Check if there are any NaNs in the dcpp model data
-    if np.isnan(dcpp_model_data).any():
+    if np.isnan(dcpp_ensemble_members).any():
         raise ValueError("DCPP model data contains NaNs.")
     
     # Check if there are any NaNs in the historical model data
-    if np.isnan(historical_model_data).any():
+    if np.isnan(historical_ensemble_members).any():
         raise ValueError("Historical model data contains NaNs.")
     
     # Check that the shapes are correct
-    dcpp_model_data_shape = dcpp_model_data[0, :, :, :]
-    historical_model_data_shape = historical_model_data[0, :, :, :]
+    dcpp_model_data_shape = dcpp_ensemble_members[0, :, :, :]
+    historical_model_data_shape = historical_ensemble_members[0, :, :, :]
 
     # check that the shapes are the same
     if observed_data.shape != dcpp_model_data_shape.shape != historical_model_data_shape.shape:
@@ -1621,20 +1621,33 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     print("rfield_diff array shape", np.shape(rfield_diff))
     print("pfield_diff array shape", np.shape(pfield_diff))
 
+    # print the shape of dcpp model years
+    print("dcpp model years shape", np.shape(dcpp_model_years))
+
+    # print the shape of dcpp ensemble members
+    print("dcpp ensemble members shape", np.shape(dcpp_ensemble_members))
+
+    # print the values of dcpp model years
+    print("dcpp model years", dcpp_model_years)
+
+    # print the values of dcpp ensemble members
+    print("dcpp ensemble members", dcpp_ensemble_members)
+
     # Check that dcpp model years is the same as dcpp_model_data.shape[1]
-    if dcpp_model_years != dcpp_model_data.shape[1]:
-        raise ValueError("DCPP model years must be the same as dcpp_model_data.shape[1].")
+    # Check that dcpp model years has the same shape as dcpp_model_data.shape[1]
+    if dcpp_model_years.shape != dcpp_ensemble_members[0, :, 0, 0].shape:
+        raise ValueError("DCPP model years must have the same shape as dcpp_model_data.shape[1].")
 
     # Set up the number of validation years
-    n_validation_years = dcpp_model_years
+    n_validation_years = len(dcpp_model_years)
 
     # Set up the number of ensemble members
     # for the dcpp model data
-    m_ensemble_members_dcpp = dcpp_ensemble_members.shape[0]
+    m_ensemble_members_dcpp = dcpp_ensemble_members[:, 0, 0, 0]
 
     # Set up the number of ensemble members
     # for the historical model data
-    m_ensemble_members_historical = historical_ensemble_members.shape[0]
+    m_ensemble_members_historical = historical_ensemble_members[:, 0, 0, 0]
 
     # Set up the block size for the autocorrelation
     block_size = 5 # years
@@ -1667,9 +1680,9 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
         mask[block_indices] = True
 
         # Apply the mask to select the corresponding block of data for the dcpp model data
-        n_mask_dcpp_model_data = dcpp_model_data[:, mask, :, :]
+        n_mask_dcpp_model_data = dcpp_ensemble_members[:, mask, :, :]
         # Apply the mask to select the corresponding block of data for the historical model data
-        n_mask_historical_model_data = historical_model_data[:, mask, :, :]
+        n_mask_historical_model_data = historical_ensemble_members[:, mask, :, :]
 
         # Next, for each case, randomly select M ensemble members with replacement.
         # For the dcpp model data
