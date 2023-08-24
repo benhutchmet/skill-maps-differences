@@ -1553,8 +1553,7 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
         n_bootstraps (int): The number of bootstraps to perform. Default is 1000.
 
     Returns:
-        rfield_diff (xarray.core.dataarray.DataArray): The differences in spatial correlations between the initialized and uninitialized data.
-        sign_regions (xarray.core.dataarray.DataArray): The regions where the correlation improvements are statistically significant.
+        pfield_diff_bootstrap (numpy.ndarray): The p-values for the differences in spatial correlations between the initialized and uninitialized data.
     """
 
     # Extract the years from the observed data
@@ -1676,6 +1675,46 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
 
         # Then for the historical model data
         rfield_historical, pfield_historical = calculate_correlation_coefficient(observed_data, ensemble_mean_historical, lat, lon)
+
+        # Calculate the differences between the initialized and uninitialized data
+        rfield_diff[i, :, :] = rfield_dcpp - rfield_historical
+
+    # Print the shape of the rfield_diff array
+    print("rfield_diff shape", np.shape(rfield_diff))
+
+    # Print the type of the rfield_diff array
+    print("rfield_diff type", type(rfield_diff))
+
+    # Print the values of the rfield_diff array
+    print("rfield_diff values", rfield_diff)
+
+    # Now we want to obtain the p-values for the differences in spatial correlations
+    # between the initialized and uninitialized data
+    # create an empty array for the p-values
+    pfield_diff_bootstrap = np.empty([len(lat), len(lon)])
+
+    # Now loop over the lats and lons
+    for y in range(len(lat)):
+        for x in range(len(lon)):
+            # set up the rfield_diff
+            rfield_diff_sample = rfield_diff[:, y, x]
+
+            # # Set all the negative values to NaN
+            # rfield_diff_sample[rfield_diff_sample < 0] = np.nan
+
+            # Calculate the p-value
+            pfield_diff_bootstrap[y, x] = np.sum(rfield_diff_sample < 0) / n_bootstraps
+
+    # Print the shape of the pfield_bootstrap array
+    print("pfield_bootstrap shape", np.shape(pfield_diff_bootstrap))
+
+    # Print the type of the pfield_bootstrap array
+    print("pfield_bootstrap type", type(pfield_diff_bootstrap))
+
+    # Return the p-values
+    return pfield_diff_bootstrap
+
+
 
 
 
