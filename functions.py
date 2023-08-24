@@ -501,6 +501,12 @@ def constrain_years_init_uninit(dcpp_model_data, historical_model_data, dcpp_mod
             # Extract the years
             historical_years = member.time.dt.year.values
 
+            # if the length of the years is less than 48, then don't use this member
+            if len(historical_years) < 48:
+                print("years less than 48")
+                print("not including this member in common years for this model: ", model)
+                continue
+
             # Append the years to the list of years
             historical_years_list.append(historical_years)
 
@@ -510,7 +516,7 @@ def constrain_years_init_uninit(dcpp_model_data, historical_model_data, dcpp_mod
     print("historical years list", historical_years_list[0])
 
     # Find the years that are in both the dcpp and historical models
-    common_years = list(set(dcpp_years_list[0]).intersection(*dcpp_years_list))
+    common_years = list(set(dcpp_years_list[0]).intersection(historical_years_list))
 
     # Print the common years for debugging
     print("Common years:", common_years)
@@ -905,6 +911,14 @@ def process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcp
 
     # Extract the ensemble members for the uninitialized data
     historical_ensemble_members, _, _, historical_model_years, historical_ensemble_members_count = extract_ensemble_members(historical_model_data, historical_models, historical_ensemble_members, historical_ensemble_members_count)
+
+    # print the shape of the dcpp and historical ensemble members
+    print("shape of dcpp model years", np.shape(dcpp_model_years))
+    print("shape of historical model years", np.shape(historical_model_years))
+
+    # print the shape of the dcpp and historical ensemble members
+    print("shape of dcpp ensemble members", np.shape(dcpp_ensemble_members))
+    print("shape of historical ensemble members", np.shape(historical_ensemble_members))
 
     # constrain the years of the observed data
     # first ensure that the years are the same for both the initialized and uninitialized data
