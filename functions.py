@@ -1643,11 +1643,11 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
 
     # Set up the number of ensemble members
     # for the dcpp model data
-    m_ensemble_members_dcpp = dcpp_ensemble_members[:, 0, 0, 0]
+    m_ensemble_members_dcpp = len(dcpp_ensemble_members[:, 0, 0, 0])
 
     # Set up the number of ensemble members
     # for the historical model data
-    m_ensemble_members_historical = historical_ensemble_members[:, 0, 0, 0]
+    m_ensemble_members_historical = len(historical_ensemble_members[:, 0, 0, 0])
 
     # Set up the block size for the autocorrelation
     block_size = 5 # years
@@ -1683,6 +1683,9 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
         n_mask_dcpp_model_data = dcpp_ensemble_members[:, mask, :, :]
         # Apply the mask to select the corresponding block of data for the historical model data
         n_mask_historical_model_data = historical_ensemble_members[:, mask, :, :]
+
+        # Apply the mask to select the corresponding block of data for the observed data
+        n_mask_observed_data = observed_data[mask, :, :]
 
         # Next, for each case, randomly select M ensemble members with replacement.
         # For the dcpp model data
