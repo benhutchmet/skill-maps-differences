@@ -1701,10 +1701,10 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
         # Calculate the correlation coefficient and p-value for each case
         # Use the function calculate_correlation_coefficient to do this
         # First for the dcpp model data
-        rfield_dcpp, pfield_dcpp = calculate_correlation_coefficient(observed_data, ensemble_mean_dcpp, lat, lon)
+        rfield_dcpp, pfield_dcpp = calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean_dcpp, lat, lon)
 
         # Then for the historical model data
-        rfield_historical, pfield_historical = calculate_correlation_coefficient(observed_data, ensemble_mean_historical, lat, lon)
+        rfield_historical, pfield_historical = calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean_historical, lat, lon)
 
         # Calculate the differences between the initialized and uninitialized data
         rfield_diff[i, :, :] = rfield_dcpp - rfield_historical
