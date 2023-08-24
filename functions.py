@@ -1032,25 +1032,29 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     rfield (xarray.core.dataarray.DataArray): The spatial correlations between the observed and model data.
     pfield (xarray.core.dataarray.DataArray): The p-values for the spatial correlations between the observed and model data.
     """
+
+    # use the function to remove NaNs from the observed data
+    observed_data = remove_nan_years_obs(observed_data)
+
     # try:
     # Process the model data and calculate the ensemble mean
-    ensemble_mean, ensemble_members, lat, lon, years, ensemble_members_count = process_model_data_for_plot(model_data, models)
+    ensemble_mean, ensemble_members, observed_data, lat, lon, model_years, _, ensemble_members_count = process_model_data_for_plot(model_data, models, observed_data)
 
     # Debug the model data
     # print("ensemble mean within spatial correlation function:", ensemble_mean)
     # print("shape of ensemble mean within spatial correlation function:", np.shape(ensemble_mean))
     
-    # Extract the lat and lon values
-    obs_lat = observed_data.lat.values
-    obs_lon = observed_data.lon.values
-    # And the years
-    obs_years = observed_data.time.dt.year.values
+    # # Extract the lat and lon values
+    # obs_lat = observed_data.lat.values
+    # obs_lon = observed_data.lon.values
+    # # And the years
+    # obs_years = observed_data.time.dt.year.values
 
     # Initialize lists for the converted lons
     obs_lons_converted, lons_converted = [], []
 
     # Transform the obs lons
-    obs_lons_converted = np.where(obs_lon > 180, obs_lon - 360, obs_lon)
+    obs_lons_converted = np.where(lon > 180, lon - 360, lon)
     # add 180 to the obs_lons_converted
     obs_lons_converted = obs_lons_converted + 180
 
@@ -1062,18 +1066,21 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
     # Print the observed and model years
     # print('observed years', obs_years)
     # print('model years', years)
+
+    # # Set the model years to the observed years
+    # years = model_years
     
-    # Find the years that are in both the observed and model data
-    years_in_both = np.intersect1d(obs_years, years)
+    # # Find the years that are in both the observed and model data
+    # years_in_both = np.intersect1d(obs_years, years)
 
-    # print('years in both', years_in_both)
+    # # print('years in both', years_in_both)
 
-    # Select only the years that are in both the observed and model data
-    observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
-    ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
+    # # Select only the years that are in both the observed and model data
+    # observed_data = observed_data.sel(time=observed_data.time.dt.year.isin(years_in_both))
+    # ensemble_mean = ensemble_mean.sel(time=ensemble_mean.time.dt.year.isin(years_in_both))
 
-    # Remove years with NaNs
-    observed_data, ensemble_mean = remove_years_with_nans_original(observed_data, ensemble_mean, variable)
+    # # Remove years with NaNs
+    # observed_data, ensemble_mean = remove_years_with_nans_original(observed_data, ensemble_mean, variable)
 
     # Print the ensemble mean values
     # print("ensemble mean value after removing nans:", ensemble_mean.values)
@@ -1099,21 +1106,21 @@ def calculate_spatial_correlations(observed_data, model_data, models, variable):
 
     # variable extracted already
     # Convert both the observed and model data to numpy arrays
-    observed_data_array = observed_data.values
-    ensemble_mean_array = ensemble_mean.values
+    # observed_data_array = observed_data.values
+    # ensemble_mean_array = ensemble_mean.values
 
     # Print the values and shapes of the observed and model data
-    # print("observed data shape", np.shape(observed_data_array))
-    # print("model data shape", np.shape(ensemble_mean_array))
+    print("observed data shape", np.shape(observed_data))
+    print("model data shape", np.shape(ensemble_mean))
     # print("observed data", observed_data_array)
     # print("model data", ensemble_mean_array)
 
     # Check that the observed data and ensemble mean have the same shape
-    if observed_data_array.shape != ensemble_mean_array.shape:
+    if observed_data.shape != ensemble_mean.shape:
         raise ValueError("Observed data and ensemble mean must have the same shape.")
 
     # Calculate the correlations between the observed and model data
-    rfield, pfield = calculate_correlations(observed_data_array, ensemble_mean_array, obs_lat, obs_lon)
+    rfield, pfield = calculate_correlations(observed_data, ensemble_mean, lat, lon)
 
     return rfield, pfield, obs_lons_converted, lons_converted, observed_data, ensemble_mean, ensemble_members_count
 

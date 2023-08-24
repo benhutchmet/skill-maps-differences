@@ -228,6 +228,15 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
 def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_model_data, init_models, uninit_models, variable, region, season, forecast_range, plots_dir, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig=0.05):
     """Plot the correlation coefficients and p-values for the init vs uninitialized models."""
 
+    # Calculate the bootstrapped p-values for the init and uninit models
+    # first for the initialized models - dcppA-hindcast
+    # Only do 100 bootstraps for now
+    pfield_bs_dcpp = fnc.calculate_spatial_correlations_bootstrap(observed_data, init_model_data, init_models, variable, n_bootstraps=100)
+
+    # Then for the uninitialized models - historical
+    # Only do 100 bootstraps for now
+    pfield_bs_hist = fnc.calculate_spatial_correlations_bootstrap(observed_data, uninit_model_data, uninit_models, variable, n_bootstraps=100)
+    
     # First source the data for this function
     # Using the calculate_spatial_correlations function
     # First for the init models (dcppA-hindcast)
@@ -238,7 +247,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     
     # Then for the uninit models (historical)
     rfield_uninit, pfield_uninit, obs_lons_converted_uninit, lons_converted_uninit, \
-        observed_data, ensemble_mean_uninit, \
+        observed_data_array, ensemble_mean_uninit, \
             ensemble_members_count_uninit = fnc.calculate_spatial_correlations(observed_data,
                                                                                 uninit_model_data, uninit_models,
                                                                                     variable)
@@ -261,15 +270,6 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
     # # print the values of the rfield_init and rfield_uninit
     # print("rfield_init values", rfield_init)
     # print("rfield_uninit values", rfield_uninit)
-
-    # Calculate the bootstrapped p-values for the init and uninit models
-    # first for the initialized models - dcppA-hindcast
-    # Only do 100 bootstraps for now
-    pfield_bs_dcpp = fnc.calculate_spatial_correlations_bootstrap(observed_data, init_model_data, init_models, variable, n_bootstraps=100)
-
-    # Then for the uninitialized models - historical
-    # Only do 100 bootstraps for now
-    pfield_bs_hist = fnc.calculate_spatial_correlations_bootstrap(observed_data, uninit_model_data, uninit_models, variable, n_bootstraps=100)
 
     # Set the font size for the plots
     plt.rcParams.update({'font.size': 12})
@@ -367,7 +367,7 @@ def plot_correlations_init_vs_uninit(observed_data, init_model_data, uninit_mode
 
 
     # Set up the figure as two subplots (1 row, 2 columns)
-    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(18, 10), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
+    fig, axs = plt.subplots(nrows=3, ncols=2, figsize=(20, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1})
     # Remove the last subplot
     axs[-1, -1].remove()
 
