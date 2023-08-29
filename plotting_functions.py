@@ -733,8 +733,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     plt.show()
 
 
-def plot_seasonal_correlations_diff(models, observations_path, dcpp_data, historical_data,
-                                    dcpp_models, historical_models, variable, region, region_grid,
+def plot_seasonal_correlations_diff(models, observations_path, historical_models, dcpp_models, variable, region, region_grid,
                                     forecast_range, seasons_list_obs, seasons_list_mod, plots_dir,
                                     obs_var_name, azores_grid, iceland_grid, p_sig=0.05, experiment='differences', n_bootstraps=100):
     """
@@ -754,14 +753,10 @@ def plot_seasonal_correlations_diff(models, observations_path, dcpp_data, histor
         The names of the models to plot.
     observations_path : str
         The path to the observations file.
-    dcpp_data : list of xarray.Dataset
-        The initialized model data.
-    historical_data : list of xarray.Dataset
-        The uninitialized model data.
-    dcpp_models : list of str
-        The names of the initialized models.
     historical_models : list of str
-        The names of the uninitialized models.
+        The names of the historical models.
+    dcpp_models : list of str
+        The names of the DCPP models.
     variable : str
         The variable to plot.
     region : str
@@ -824,6 +819,21 @@ def plot_seasonal_correlations_diff(models, observations_path, dcpp_data, histor
         # Append the processed observations to the list
         obs_list.append(obs)
 
+        # Load and process the uninitialized model data (historical) for this season
+        historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
+                                                            variable, region, forecast_range,
+                                                            seasons_list_mod[i])
+        # Process the uninitialized model data (historical) for this season
+        historical_data, _ = fnc.extract_historical_data(historical_data, variable)
+
+        # Load and process the initialized model data (dcpp) for this season
+        dcpp_data = fnc.load_processed_dcpp_data(dic.base_dir_dcpp, dcpp_models,
+                                                variable, region, forecast_range,
+                                                seasons_list_mod[i])
+        # Process the initialized model data (dcpp) for this season
+        dcpp_data, _ = fnc.extract_dcpp_data(dcpp_data, variable)
+
+
         # Get the rfield_diff
         # using the calculate_spatial_correlations_diff function
         rfield_diff, sign_regions, obs_lons_converted, lons_converted, observed_data, \
@@ -841,3 +851,7 @@ def plot_seasonal_correlations_diff(models, observations_path, dcpp_data, histor
                                                                             variable, n_bootstraps)
         # Append the pfield_diff_bs to the list
         pfield_list.append(pfield_diff_bs)
+
+        # Append the obs_lons_converted and lons_converted to the lists
+        obs_lons_converted_list.append(obs_lons_converted)
+        lons_converted_list.append(lons_converted)
