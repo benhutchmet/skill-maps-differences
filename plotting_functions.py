@@ -733,18 +733,20 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     plt.show()
 
 
-def plot_seasonal_correlations_diff(models, observations_path, variable, region, region_grid,
+def plot_seasonal_correlations_diff(models, observations_path, dcpp_data, historical_data,
+                                    dcpp_models, historical_models, variable, region, region_grid,
                                     forecast_range, seasons_list_obs, seasons_list_mod, plots_dir,
-                                    obs_var_name, azores_grid, iceland_grid, p_sig=0.05, experiment=None):
+                                    obs_var_name, azores_grid, iceland_grid, p_sig=0.05, experiment='differences', n_bootstraps=100):
     """
     Plot the spatial correlation coefficients differences and p-values for all models for each season.
 
-    This function takes a list of models, the path to the observations file, the variable, region, region grid,
-    forecast range, lists of seasons for the observations and models, the directory where the plots will be saved,
-    the name of the observed variable, the Azores grid, the Iceland grid, the p-value threshold, and the experiment
-    name (optional). It then calculates the correlation coefficients and p-values for each model and season and
-    plots the differences between the initialized and uninitialized simulations as four subplots, one for each
-    season: DJFM, MAM, JJA, SON.
+    This function takes a list of models, the path to the observations file, the initialized and uninitialized model
+    data, the names of the initialized and uninitialized models, the variable, region, region grid, forecast range,
+    lists of seasons for the observations and models, the directory where the plots will be saved, the name of the
+    observed variable, the Azores grid, the Iceland grid, the p-value threshold, the experiment name (optional), and
+    the number of bootstraps to use for the confidence intervals (optional). It then calculates the correlation
+    coefficients and p-values for each model and season and plots the differences between the initialized and
+    uninitialized simulations as four subplots, one for each season: DJFM, MAM, JJA, SON.
 
     Parameters
     ----------
@@ -752,6 +754,14 @@ def plot_seasonal_correlations_diff(models, observations_path, variable, region,
         The names of the models to plot.
     observations_path : str
         The path to the observations file.
+    dcpp_data : list of xarray.Dataset
+        The initialized model data.
+    historical_data : list of xarray.Dataset
+        The uninitialized model data.
+    dcpp_models : list of str
+        The names of the initialized models.
+    historical_models : list of str
+        The names of the uninitialized models.
     variable : str
         The variable to plot.
     region : str
@@ -776,6 +786,8 @@ def plot_seasonal_correlations_diff(models, observations_path, variable, region,
         The p-value threshold for significance. Default is 0.05.
     experiment : str, optional
         The name of the experiment. Default is None.
+    n_bootstraps : int, optional
+        The number of bootstraps to use for the confidence intervals. Default is 100.
 
     Returns
     -------
@@ -788,7 +800,7 @@ def plot_seasonal_correlations_diff(models, observations_path, variable, region,
 
     # Create empty lists to store the rfield and pfield
     # for each season
-    rfield_list = []
+    rfield_diff_list = []
     pfield_list = []
 
     # Create lists to store the obs_lons_converted and lons_converted
@@ -809,3 +821,23 @@ def plot_seasonal_correlations_diff(models, observations_path, variable, region,
         # Process the observations for this season
         obs = fnc.process_observations(variable, region, region_grid, forecast_range,
                                         season, observations_path, obs_var_name)
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+        # Get the rfield_diff
+        # using the calculate_spatial_correlations_diff function
+        rfield_diff, sign_regions, obs_lons_converted, lons_converted, observed_data, \
+        dcpp_ensemble_mean, historical_ensemble_mean, dcpp_ensemble_members_count, \
+        historical_ensemble_members_count = fnc.calculate_spatial_correlations_diff(obs, dcpp_data, historical_data,
+                                                                                    dcpp_models, historical_models,
+                                                                                    variable)
+        # Append the rfield_diff to the list
+        rfield_diff_list.append(rfield_diff)
+
+        # Get the bootstrapped pfield
+        # using the calculate_spatial_correlations_bootstrapp_diff function
+        pfield_diff_bs = fnc.calculate_spatial_correlations_bootstrap_diff(obs, dcpp_data, historical_data,
+                                                                            dcpp_models, historical_models,
+                                                                            variable, n_bootstraps)
+        # Append the pfield_diff_bs to the list
+        pfield_list.append(pfield_diff_bs)
