@@ -825,7 +825,7 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
         historical_data, _ = fnc.extract_historical_data(historical_data, variable)
 
         # Load and process the initialized model data (dcpp) for this season
-        dcpp_data = fnc.load_data(dic.base_dir_dcpp, dcpp_models,
+        dcpp_data = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
                                     variable, region, forecast_range,
                                     seasons_list_mod[i])
         # Process the initialized model data (dcpp) for this season
