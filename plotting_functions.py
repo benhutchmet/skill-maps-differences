@@ -753,7 +753,7 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
         The path to the observations file.
     historical_models : list of str
         The names of the historical models.
-    dcpp_models : list of str
+    dcpp_models : list of str   
         The names of the DCPP models.
     variable : str
         The variable to plot.
@@ -825,11 +825,11 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
         historical_data, _ = fnc.extract_historical_data(historical_data, variable)
 
         # Load and process the initialized model data (dcpp) for this season
-        dcpp_data = fnc.load_processed_dcpp_data(dic.base_dir_dcpp, dcpp_models,
-                                                variable, region, forecast_range,
-                                                seasons_list_mod[i])
+        dcpp_data = fnc.load_data(dic.base_dir_dcpp, dcpp_models,
+                                    variable, region, forecast_range,
+                                    seasons_list_mod[i])
         # Process the initialized model data (dcpp) for this season
-        dcpp_data, _ = fnc.extract_dcpp_data(dcpp_data, variable)
+        dcpp_data, _ = fnc.process_data(dcpp_data, variable)
 
 
         # Get the rfield_diff
