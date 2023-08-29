@@ -820,7 +820,7 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
         # Load and process the uninitialized model data (historical) for this season
         historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
                                                             variable, region, forecast_range,
-                                                            seasons_list_mod[i])
+                                                            season)
         # Process the uninitialized model data (historical) for this season
         historical_data, _ = fnc.extract_historical_data(historical_data, variable)
 
