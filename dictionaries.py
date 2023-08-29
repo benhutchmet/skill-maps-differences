@@ -241,3 +241,13 @@ season_timeshift = [
 ]
 
 variables = [ 'psl', 'tas', 'sfcWind', 'rsds', 'tos' ]
+
+# Define a seasons list for the subplotting function
+seasons_list_obs = ["DJFM", "MAM", "JJA", "SON"]
+
+# Define a seasons list for the subplotting function for tos
+# missing MAM
+seasons_list_obs_tos = ["DJFM", "JJA", "SON"]
+
+# Define a seasons list for the observations
+seasons_list_model = ["DJFM", "MAY", "ULG", "SON"]

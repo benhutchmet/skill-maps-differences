@@ -733,7 +733,7 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     plt.show()
 
 
-def plot_seasonal_correlations_diff(models, observations_path, historical_models, dcpp_models, variable, region, region_grid,
+def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_models, variable, region, region_grid,
                                     forecast_range, seasons_list_obs, seasons_list_mod, plots_dir,
                                     obs_var_name, azores_grid, iceland_grid, p_sig=0.05, experiment='differences', n_bootstraps=100):
     """
@@ -749,8 +749,6 @@ def plot_seasonal_correlations_diff(models, observations_path, historical_models
 
     Parameters
     ----------
-    models : list of str
-        The names of the models to plot.
     observations_path : str
         The path to the observations file.
     historical_models : list of str
