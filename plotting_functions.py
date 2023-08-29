@@ -731,3 +731,81 @@ def plot_correlations_subplots(models, obs, variable_data, variable, region, sea
     
     # Show the figure
     plt.show()
+
+
+def plot_seasonal_correlations_diff(models, observations_path, variable, region, region_grid,
+                                    forecast_range, seasons_list_obs, seasons_list_mod, plots_dir,
+                                    obs_var_name, azores_grid, iceland_grid, p_sig=0.05, experiment=None):
+    """
+    Plot the spatial correlation coefficients differences and p-values for all models for each season.
+
+    This function takes a list of models, the path to the observations file, the variable, region, region grid,
+    forecast range, lists of seasons for the observations and models, the directory where the plots will be saved,
+    the name of the observed variable, the Azores grid, the Iceland grid, the p-value threshold, and the experiment
+    name (optional). It then calculates the correlation coefficients and p-values for each model and season and
+    plots the differences between the initialized and uninitialized simulations as four subplots, one for each
+    season: DJFM, MAM, JJA, SON.
+
+    Parameters
+    ----------
+    models : list of str
+        The names of the models to plot.
+    observations_path : str
+        The path to the observations file.
+    variable : str
+        The variable to plot.
+    region : str
+        The region to plot.
+    region_grid : numpy.ndarray
+        The longitudes and latitudes for the region.
+    forecast_range : str
+        The forecast range to plot.
+    seasons_list_obs : list of str
+        The seasons to use for the observations.
+    seasons_list_mod : list of str
+        The seasons to use for the models.
+    plots_dir : str
+        The directory where the plots will be saved.
+    obs_var_name : str
+        The name of the observed variable.
+    azores_grid : tuple of float
+        The longitude and latitude of the Azores.
+    iceland_grid : tuple of float
+        The longitude and latitude of Iceland.
+    p_sig : float, optional
+        The p-value threshold for significance. Default is 0.05.
+    experiment : str, optional
+        The name of the experiment. Default is None.
+
+    Returns
+    -------
+    None
+    """
+
+    # Create an empty list to store the processed observations
+    # for each season
+    obs_list = []
+
+    # Create empty lists to store the rfield and pfield
+    # for each season
+    rfield_list = []
+    pfield_list = []
+
+    # Create lists to store the obs_lons_converted and lons_converted
+    # for each season
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Create the list of labels to add to the subplot
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Loop over the seasons
+    for i, season in enumerate(seasons_list_obs):
+
+        # Print the seasons being processed
+        print("Processing season:", season)
+        print("Processing season:", seasons_list_mod[i])
+
+        # Process the observations for this season
+        obs = fnc.process_observations(variable, region, region_grid, forecast_range,
+                                        season, observations_path, obs_var_name)
