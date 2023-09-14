@@ -739,8 +739,7 @@ def process_model_data_for_plot(model_data, models, observed_data):
         
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
-            # Append the ensemble member to the list of ensemble members
-            ensemble_members.append(member)
+            # FIXME: fix issue witth time type
 
             # Try to print values for each member
             # print("trying to print values for each member for debugging")
@@ -754,6 +753,11 @@ def process_model_data_for_plot(model_data, models, observed_data):
 
             # Extract the years
             model_years = member.time.dt.year.values
+
+            # FIXME: Fix issue with duplicate years
+
+            # Append the ensemble member to the list of ensemble members
+            ensemble_members.append(member)
 
             # Print statements for debugging
             # print('shape of years', np.shape(years))

@@ -251,3 +251,5 @@ seasons_list_obs_tos = ["DJFM", "JJA", "SON"]
 
 # Define a seasons list for the observations
 seasons_list_model = ["DJFM", "MAY", "ULG", "SON"]
+
+common_models_noCMCC = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-MM", "EC-Earth3", "FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "CESM1-1-CAM5-CMIP5", "NorCPM1"]
