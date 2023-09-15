@@ -1660,11 +1660,10 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     # for the dcpp model data
     # m_ensemble_members_dcpp = len(dcpp_ensemble_members[:, 0, 0, 0])
     # take the len of the first dimension of the dcpp ensemble members array
-    m_ensemble_members_dcpp = len(dcpp_ensemble_members, axis=0)
-
+    m_ensemble_members_dcpp = dcpp_ensemble_members.shape[0]
     # Set up the number of ensemble members
     # for the historical model data
-    m_ensemble_members_historical = len(historical_ensemble_members, axis=0)
+    m_ensemble_members_historical = historical_ensemble_members.shape[0]
 
     # Set up the block size for the autocorrelation
     block_size = 5 # years
