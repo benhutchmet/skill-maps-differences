@@ -739,13 +739,14 @@ def process_model_data_for_plot(model_data, models, observed_data):
         
         # Loop over the ensemble members in the model data
         for member in model_data_combined:
-            # FIXME: fix issue witth time type
 
-            # Try to print values for each member
-            # print("trying to print values for each member for debugging")
-            # print("values for model:", model)
-            # print("values for members:", member)
-            # print("member values:", member.values)
+            # If the time type is not np.datetime64, then convert it
+            if type(member.time.values[0]) != np.datetime64:
+                # Convert the time type
+                member.time = member.time.astype('datetime64[ns]')
+
+                # Assign the time values
+                member = member.assign_coords(time=member.time)
 
             # Extract the lat and lon values
             lat = member.lat.values
@@ -754,14 +755,14 @@ def process_model_data_for_plot(model_data, models, observed_data):
             # Extract the years
             model_years = member.time.dt.year.values
 
-            # FIXME: Fix issue with duplicate years
+            # If the years index has duplicate values, then skip over this member
+            if len(model_years) != len(set(model_years)):
+                print("duplicate years")
+                print("not including this member for this model: ", model)
+                continue
 
             # Append the ensemble member to the list of ensemble members
             ensemble_members.append(member)
-
-            # Print statements for debugging
-            # print('shape of years', np.shape(years))
-            # # print('years', years)
 
             # Increment the count of ensemble members for the model
             ensemble_members_count[model] += 1
