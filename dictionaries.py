@@ -242,7 +242,7 @@ season_timeshift = [
     {'season': 'ONDJ', 'timeshift': -1},
 ]
 
-variables = [ 'psl', 'tas', 'sfcWind', 'rsds', 'tos' ]
+variables = [ 'psl', 'tas', 'sfcWind', 'rsds', 'tos', 'ua', 'va' ]
 
 # Define a seasons list for the subplotting function
 seasons_list_obs = ["DJFM", "MAM", "JJA", "SON"]
