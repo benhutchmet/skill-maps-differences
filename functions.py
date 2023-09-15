@@ -743,7 +743,7 @@ def process_model_data_for_plot(model_data, models, observed_data):
             # If the time type is not np.datetime64, then convert it
             if type(member.time.values[0]) != np.datetime64:
                 # Convert the time type
-                member.time = member.time.astype('datetime64[ns]')
+                member_time = member.time.astype('datetime64[ns]')
 
                 # Assign the time values
                 member = member.assign_coords(time=member.time)
