@@ -874,6 +874,8 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
                 # to loop over
                 nmembers = len(historical_data_u_model)
 
+                nmembers_v = len(historical_data_v_model)
+
                 # Loop over the ensemble members
                 for member in range(nmembers):
 
