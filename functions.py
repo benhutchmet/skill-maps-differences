@@ -535,6 +535,12 @@ def constrain_years_init_uninit(dcpp_model_data, historical_model_data, dcpp_mod
             # Extract the years
             dcpp_years = member.time.dt.year.values
 
+            # If the dcpp years contains duplicate values, then skip over this member
+            if len(dcpp_years) != len(set(dcpp_years)):
+                print("duplicate years")
+                print("not including this member for this model: ", model)
+                continue
+
             # Find the years that are in both the model data and the common years
             years_in_both = np.intersect1d(dcpp_years, common_years)
 
