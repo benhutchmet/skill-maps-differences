@@ -622,6 +622,8 @@ def remove_years_with_nans(observed_data, dcpp_ensemble_mean, historical_ensembl
         obs_var_name = "var131"
     elif obs_var_name == "va":
         obs_var_name = "var132"
+    elif obs_var_name == "850_ws":
+        obs_var_name = "850_ws"
     else:
         print("Invalid variable name")
         sys.exit()
