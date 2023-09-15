@@ -804,6 +804,12 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
     # Create the list of labels to add to the subplot
     ax_labels = ['A', 'B', 'C', 'D']
 
+    # If the variable is wind
+    if variable == 'wind':
+        # Set up the model variables
+        model_ws_variables = ['ua', 'va']
+        obs_ws_variables = ['var131', 'var132']
+    
     # Loop over the seasons
     for i, season in enumerate(seasons_list_obs):
 
@@ -811,26 +817,37 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
         print("Processing season:", season)
         print("Processing season:", seasons_list_mod[i])
 
-        # Process the observations for this season
-        obs = fnc.process_observations(variable, region, region_grid, forecast_range,
-                                        season, observations_path, obs_var_name)
-        # Append the processed observations to the list
-        obs_list.append(obs)
+        if variable == 'wind':
+            print("Calculating the wind speed from the u and v components")
 
-        # Load and process the uninitialized model data (historical) for this season
-        historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
-                                                            variable, region, forecast_range,
-                                                            season)
-        # Process the uninitialized model data (historical) for this season
-        historical_data, _ = fnc.extract_historical_data(historical_data, variable)
+            # Calculate the wind speed from the u and v components
+            # for the observations
+            obs_u = fnc.process_observations(model_ws_variables[0], region, region_grid, forecast_range,
+                                                season, observations_path, obs_ws_variables[0])
+            obs_v = fnc.process_observations(model_ws_variables[1], region, region_grid, forecast_range,
+                                                season, observations_path, obs_ws_variables[1])
+        else:
+            print("Calculating the spatial correlations for the", variable)
 
-        # Load and process the initialized model data (dcpp) for this season
-        dcpp_data = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
-                                    variable, region, forecast_range,
-                                    seasons_list_mod[i])
-        # Process the initialized model data (dcpp) for this season
-        dcpp_data, _ = fnc.process_data(dcpp_data, variable)
+            # Process the observations for this season
+            obs = fnc.process_observations(variable, region, region_grid, forecast_range,
+                                            season, observations_path, obs_var_name)
+            # Append the processed observations to the list
+            obs_list.append(obs)
 
+            # Load and process the uninitialized model data (historical) for this season
+            historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
+                                                                variable, region, forecast_range,
+                                                                season)
+            # Process the uninitialized model data (historical) for this season
+            historical_data, _ = fnc.extract_historical_data(historical_data, variable)
+
+            # Load and process the initialized model data (dcpp) for this season
+            dcpp_data = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
+                                        variable, region, forecast_range,
+                                        seasons_list_mod[i])
+            # Process the initialized model data (dcpp) for this season
+            dcpp_data, _ = fnc.process_data(dcpp_data, variable)
 
         # Get the rfield_diff
         # using the calculate_spatial_correlations_diff function
