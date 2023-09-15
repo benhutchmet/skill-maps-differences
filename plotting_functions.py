@@ -826,6 +826,95 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
                                                 season, observations_path, obs_ws_variables[0])
             obs_v = fnc.process_observations(model_ws_variables[1], region, region_grid, forecast_range,
                                                 season, observations_path, obs_ws_variables[1])
+
+            # Calculate the wind speed from the u and v components
+            # for the observations
+            obs = np.sqrt(np.square(obs_u) + np.square(obs_v))
+
+            # Load and process the uninitialized model data (historical) for this season
+            historical_data_u = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
+                                                                    model_ws_variables[0], region, forecast_range,
+                                                                        season)
+            historical_data_v = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
+                                                                    model_ws_variables[1], region, forecast_range,
+                                                                        season)
+            
+            # Process the uninitialized model data (historical) for this season
+            historical_data_u, _ = fnc.extract_historical_data(historical_data_u, model_ws_variables[0])
+            historical_data_v, _ = fnc.extract_historical_data(historical_data_v, model_ws_variables[1])
+
+            # Load and process the initialized model data (dcpp) for this season
+            dcpp_data_u = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
+                                            model_ws_variables[0], region, forecast_range,
+                                                seasons_list_mod[i])
+            dcpp_data_v = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
+                                            model_ws_variables[1], region, forecast_range,
+                                                seasons_list_mod[i])
+            
+            # Process the initialized model data (dcpp) for this season
+            dcpp_data_u, _ = fnc.process_data(dcpp_data_u, model_ws_variables[0])
+            dcpp_data_v, _ = fnc.process_data(dcpp_data_v, model_ws_variables[1])
+
+            # Calculate the wind speed from the u and v components
+            # First initialize an empty dictionary to store the data
+            historical_data_ws = {}
+            dcpp_data_ws = {}
+
+            # Loop over the historical models
+            for model in historical_models:
+                # Extract the historical data for this model
+                # for the u and v components
+                historical_data_u_model = historical_data_u[model]
+                historical_data_v_model = historical_data_v[model]
+
+                # Create a list to store the ensemble members
+                historical_data_ws[model] = []
+
+                # Set up the number of members for this model
+                # to loop over
+                nmembers = len(historical_data_u_model)
+
+                # Loop over the ensemble members
+                for member in range(nmembers):
+
+                    # Extract the ufield and vfield for this member
+                    ufield, vfield = historical_data_u_model[member], historical_data_v_model[member]
+
+                    # Calculate the wind speed from the u and v components
+                    ws = np.sqrt(np.square(ufield) + np.square(vfield))
+
+                    # Append the wind speed to the list
+                    historical_data_ws[model].append(ws)
+            
+            # Loop over the initialized models
+            for model in dcpp_models:
+                # Extract the initialized data for this model
+                # for the u and v components
+                dcpp_data_u_model = dcpp_data_u[model]
+                dcpp_data_v_model = dcpp_data_v[model]
+
+                # Create a list to store the ensemble members
+                dcpp_data_ws[model] = []
+
+                # Set up the number of members for this model
+                # to loop over
+                nmembers = len(dcpp_data_u_model)
+
+                # Loop over the ensemble members
+                for member in range(nmembers):
+
+                    # Extract the ufield and vfield for this member
+                    ufield, vfield = dcpp_data_u_model[member], dcpp_data_v_model[member]
+
+                    # Calculate the wind speed from the u and v components
+                    ws = np.sqrt(np.square(ufield) + np.square(vfield))
+
+                    # Append the wind speed to the list
+                    dcpp_data_ws[model].append(ws)
+
+            # Set up the obs var name
+            variable = "850_ws"
+                
         else:
             print("Calculating the spatial correlations for the", variable)
 
