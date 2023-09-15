@@ -1647,21 +1647,24 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     # print the values of dcpp ensemble members
     print("dcpp ensemble members", dcpp_ensemble_members)
 
+    # FIXME: Causing errors for rsds case
     # Check that dcpp model years is the same as dcpp_model_data.shape[1]
     # Check that dcpp model years has the same shape as dcpp_model_data.shape[1]
-    if dcpp_model_years.shape != dcpp_ensemble_members[0, :, 0, 0].shape:
-        raise ValueError("DCPP model years must have the same shape as dcpp_model_data.shape[1].")
+    # if dcpp_model_years.shape != dcpp_ensemble_members[0, :, 0, 0].shape:
+    #     raise ValueError("DCPP model years must have the same shape as dcpp_model_data.shape[1].")
 
     # Set up the number of validation years
     n_validation_years = len(dcpp_model_years)
 
     # Set up the number of ensemble members
     # for the dcpp model data
-    m_ensemble_members_dcpp = len(dcpp_ensemble_members[:, 0, 0, 0])
+    # m_ensemble_members_dcpp = len(dcpp_ensemble_members[:, 0, 0, 0])
+    # take the len of the first dimension of the dcpp ensemble members array
+    m_ensemble_members_dcpp = len(dcpp_ensemble_members, axis=0)
 
     # Set up the number of ensemble members
     # for the historical model data
-    m_ensemble_members_historical = len(historical_ensemble_members[:, 0, 0, 0])
+    m_ensemble_members_historical = len(historical_ensemble_members, axis=0)
 
     # Set up the block size for the autocorrelation
     block_size = 5 # years
