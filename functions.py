@@ -317,6 +317,15 @@ def process_data(datasets_by_model, variable):
         elif variable == "sfcWind":
             # Extract the variable.
             variable_data = dataset["sfcWind"]
+        elif variable == "tos":
+            # Extract the variable
+            variable_data = dataset["tos"]
+        elif variable == "ua":
+            # Extract the variable
+            variable_data = dataset["ua"]
+        elif variable == "va":
+            # Extract the variable
+            variable_data = dataset["va"]
         else:
             #print("Variable " + variable + " not recognised")
             sys.exit()
@@ -609,6 +618,10 @@ def remove_years_with_nans(observed_data, dcpp_ensemble_mean, historical_ensembl
         obs_var_name = "ssrd"
     elif obs_var_name == "tos":
         obs_var_name = "sst"
+    elif obs_var_name == "ua":
+        obs_var_name = "var131"
+    elif obs_var_name == "va":
+        obs_var_name = "var132"
     else:
         print("Invalid variable name")
         sys.exit()
@@ -991,6 +1004,10 @@ def remove_years_with_nans_original(observed_data, ensemble_mean, variable):
         obs_var_name = "ssrd"
     elif obs_var_name == "tos":
         obs_var_name = "sst"
+    elif obs_var_name == "ua":
+        obs_var_name = "var131"
+    elif obs_var_name == "va":
+        obs_var_name = "var132"
     else:
         #print("Invalid variable name")
         sys.exit()
