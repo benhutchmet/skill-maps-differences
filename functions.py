@@ -86,11 +86,11 @@ def load_processed_historical_data(base_dir, models, variable, region, forecast_
             # Open the dataset using xarray
             data = xr.open_dataset(file, chunks={'time': 100, 'lat': 45, 'lon': 45})
 
-            # Extract the variant_label
-            variant_label = data.attrs['variant_label']
+            # # Extract the variant_label
+            # variant_label = data.attrs['variant_label']
 
-            # Print the variant_label
-            print("loading variant_label: ", variant_label)
+            # # Print the variant_label
+            # print("loading variant_label: ", variant_label)
 
             # Add the data to the dictionary
             # Using the variant_label as the key
@@ -1950,7 +1950,7 @@ def regrid_and_select_region(observations_path, region, obs_var_name):
     # Load the regridded and selected region dataset
     # for the provided variable
     # check whether the variable name is valid
-    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos"]:
+    if obs_var_name not in ["psl", "tas", "sfcWind", "rsds", "tos", "ua", "va", "var131", "var132", "wind"]:
         print("Invalid variable name")
         sys.exit()
 
