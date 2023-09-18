@@ -834,6 +834,9 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
             # for the observations
             obs = np.sqrt(np.square(obs_u) + np.square(obs_v))
 
+            # Append the processed observations to the list
+            obs_list.append(obs)
+
             # Load and process the uninitialized model data (historical) for this season
             historical_data_u = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
                                                                     model_ws_variables[0], region, forecast_range,
