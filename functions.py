@@ -1631,6 +1631,130 @@ def calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean, lats,
 
     return rfield, pfield
 
+
+# Function for calculating the wind speed
+# from the u and v components
+def calculate_wind_speed(u, v):
+    """
+    Calculates the wind speed from the u and v components for the observations.
+
+    Parameters:
+    -----------
+    obs_u : numpy.ndarray
+        Array of u-component wind observations.
+    obs_v : numpy.ndarray
+        Array of v-component wind observations.
+
+    Returns:
+    --------
+    numpy.ndarray
+        Array of wind speed observations.
+    """
+    return np.sqrt(np.square(u) + np.square(v))
+
+
+# Create a function to calculate the wind speed from the u and v components
+# for the historical data
+def calculate_historical_data_ws(historical_models, historical_data_u, historical_data_v):
+    """
+    Calculates the wind speed from the u and v components for the historical data.
+
+    Parameters:
+    -----------
+    historical_models : list of str
+        List of the names of the historical models.
+    historical_data_u : dict
+        Dictionary with the u-component wind data for each historical model.
+    historical_data_v : dict
+        Dictionary with the v-component wind data for each historical model.
+
+    Returns:
+    --------
+    dict
+        Dictionary with the wind speed data for each historical model.
+    """
+    historical_data_ws = {}
+
+    # Loop over the historical models
+    for model in historical_models:
+        # Extract the historical data for this model
+        # for the u and v components
+        historical_data_u_model = historical_data_u[model]
+        historical_data_v_model = historical_data_v[model]
+
+        # Create a list to store the ensemble members
+        historical_data_ws[model] = []
+
+        # Set up the number of members for this model
+        # to loop over
+        nmembers = len(historical_data_u_model)
+
+        nmembers_v = len(historical_data_v_model)
+
+        # Loop over the ensemble members
+        for member in range(nmembers_v):
+
+            # Extract the ufield and vfield for this member
+            ufield, vfield = historical_data_u_model[member], historical_data_v_model[member]
+
+            # Calculate the wind speed from the u and v components
+            ws = np.sqrt(np.square(ufield) + np.square(vfield))
+
+            # Append the wind speed to the list
+            historical_data_ws[model].append(ws)
+
+    return historical_data_ws
+
+
+# Same for the dcpp data
+def calculate_dcpp_data_ws(dcpp_models, dcpp_data_u, dcpp_data_v):
+    """
+    Calculates the wind speed from the u and v components for the DCPP data.
+
+    Parameters:
+    -----------
+    dcpp_models : list of str
+        List of the names of the DCPP models.
+    dcpp_data_u : dict
+        Dictionary with the u-component wind data for each DCPP model.
+    dcpp_data_v : dict
+        Dictionary with the v-component wind data for each DCPP model.
+
+    Returns:
+    --------
+    dict
+        Dictionary with the wind speed data for each DCPP model.
+    """
+    dcpp_data_ws = {}
+
+    # Loop over the initialized models
+    for model in dcpp_models:
+        # Extract the initialized data for this model
+        # for the u and v components
+        dcpp_data_u_model = dcpp_data_u[model]
+        dcpp_data_v_model = dcpp_data_v[model]
+
+        # Create a list to store the ensemble members
+        dcpp_data_ws[model] = []
+
+        # Set up the number of members for this model
+        # to loop over
+        nmembers = len(dcpp_data_u_model)
+
+        # Loop over the ensemble members
+        for member in range(nmembers):
+
+            # Extract the ufield and vfield for this member
+            ufield, vfield = dcpp_data_u_model[member], dcpp_data_v_model[member]
+
+            # Calculate the wind speed from the u and v components
+            ws = np.sqrt(np.square(ufield) + np.square(vfield))
+
+            # Append the wind speed to the list
+            dcpp_data_ws[model].append(ws)
+
+    return dcpp_data_ws
+
 # Define a new function to calculate the bootstrapped p-values for the differences in spatial correlations
 # Between the initialized (dcpp data) and the uninitialized (historical data)
 def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data, historical_model_data, dcpp_models, historical_models, variable, n_bootstraps=1000):

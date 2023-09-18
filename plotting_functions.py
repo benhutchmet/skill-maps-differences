@@ -1085,3 +1085,156 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
     # Show the figure
     plt.show()
 
+
+# TODO: Write a new function for plotting the variable differences
+# Same season, dfifferent variables
+def plot_variable_correlations_diff(observations_path, wind_obs_path, historical_models_list, dcpp_models_list, variables_list,
+                                        region, region_grid, forecast_range, obs_season, model_season, 
+                                            plots_dir, obs_var_names, azores_grid, iceland_grid, p_sig=0.05, 
+                                                experiment='differences', n_bootstraps=100):
+    """
+    Plots the correlations between the differences of two variables for a given region and season.
+
+    Parameters:
+    -----------
+    observations_path : str
+        Path to the observations file.
+    wind_obs_path : str
+        Path to the wind observations file.
+    historical_models_list : list of str
+        List of paths to the historical models files.
+    dcpp_models_list : list of str
+        List of paths to the DCPP models files.
+    variables_list : list of tuples
+        List of tuples with the names of the two variables to compare.
+    region : str
+        Name of the region to analyze.
+    region_grid : str
+        Name of the grid to use for the region.
+    forecast_range : str
+        Forecast range to analyze.
+    obs_season : str
+        Season to use for the observations.
+    model_season : str
+        Season to use for the models.
+    plots_dir : str
+        Path to the directory where the plots will be saved.
+    obs_var_names : list of str
+        List of the names of the variables in the observations file.
+    azores_grid : str
+        Name of the grid to use for the Azores region.
+    iceland_grid : str
+        Name of the grid to use for the Iceland region.
+    p_sig : float, optional
+        Significance level for the correlation test (default is 0.05).
+    experiment : str, optional
+        Type of experiment to perform (default is 'differences').
+    n_bootstraps : int, optional
+        Number of bootstrap samples to use for the confidence intervals (default is 100).
+
+    Returns:
+    --------
+    None
+    """
+
+    # Create an empty list to store the processed observations
+    obs_list = []
+
+    # Create empty lists to store the rfield and pfield
+    rfield_diff_list = []
+    pfield_list = []
+
+    # Create an empty list to store the ensemble members count
+    ensemble_members_count_list = []
+
+    # LIsts for the obs_lons_converted and lons_converted
+    obs_lons_converted_list = []
+    lons_converted_list = []
+
+    # Create the list of labels to add to the subplot
+    ax_labels = ['A', 'B', 'C', 'D']
+
+    # Set up the variables for calculating wind speed
+    # if variables list contains wind
+    if 'wind' in variables_list:
+        # Set up the model variables
+        model_ws_variables = ['ua', 'va']
+        obs_ws_variables = ['var131', 'var132']
+
+    # Loop over the variables
+    for i, variable in enumerate(variables_list):
+
+        # Print the variable being processed
+        print("Processing variable:", variable)
+
+        # Extract the obs_var_name
+        obs_var_name = obs_var_names[i]
+
+        # Extract the historical models
+        historical_models, dcpp_models = historical_models_list[i], dcpp_models_list[i]
+
+        # If the variable is wind
+        if variable == 'wind':
+            print("Calculating the wind speed from the u and v components")
+
+            # Calculate the wind speed from the u and v components
+            # for the observations
+            obs_u = fnc.process_observations(model_ws_variables[0], region, region_grid, forecast_range,
+                                                obs_season, wind_obs_path, obs_ws_variables[0])
+            obs_v = fnc.process_observations(model_ws_variables[1], region, region_grid, forecast_range,
+                                                obs_season, wind_obs_path, obs_ws_variables[1])
+            
+            # Calculate the wind speed from the u and v components
+            # for the observations
+            obs = fnc.calculate_wind_speed(obs_u, obs_v)
+
+            # Load and process the uninitialized model data (historical) for this variable
+            historical_data_u = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
+                                                                    model_ws_variables[0], region, forecast_range,
+                                                                        model_season)
+            historical_data_v = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
+                                                                    model_ws_variables[1], region, forecast_range,
+                                                                        model_season)
+            
+            # Process the uninitialized model data (historical) for this variable
+            historical_data_u, _ = fnc.extract_historical_data(historical_data_u, model_ws_variables[0])
+            historical_data_v, _ = fnc.extract_historical_data(historical_data_v, model_ws_variables[1])
+
+            # Calculate the wind speed from the u and v components
+            historical_data_ws = fnc.calculate_historical_data_ws(historical_models, historical_data_u, historical_data_v)
+
+            # Load and process the initialized model data (dcpp) for this variable
+            dcpp_data_u = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
+                                            model_ws_variables[0], region, forecast_range,
+                                                model_season)
+            dcpp_data_v = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
+                                            model_ws_variables[1], region, forecast_range,
+                                                model_season)
+            
+            # Process the initialized model data (dcpp) for this variable
+            dcpp_data_u, _ = fnc.process_data(dcpp_data_u, model_ws_variables[0])
+            dcpp_data_v, _ = fnc.process_data(dcpp_data_v, model_ws_variables[1])
+
+            # Calculate the wind speed from the u and v components
+            dcpp_data_ws = fnc.calculate_dcpp_data_ws(dcpp_models, dcpp_data_u, dcpp_data_v)
+
+        else:
+            print("Calculating the spatial correlations for:", variable)
+
+            # Process the observations for this variabls
+            obs = fnc.process_observations(variable, region, region_grid, forecast_range,
+                                            obs_season, observations_path, obs_var_name)
+            
+            # Load and process the uninitialized model data (historical) for this variable
+            historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models_list,
+                                                                    variable, region, forecast_range,
+                                                                        model_season)
+            # Process the uninitialized model data (historical) for this variable
+            historical_data, _ = fnc.extract_historical_data(historical_data, variable)
+
+            # Load and process the initialized model data (dcpp) for this variable
+            dcpp_data = fnc.load_data(dic.dcpp_base_dir, dcpp_models_list,
+                                        variable, region, forecast_range,
+                                            model_season)
+            # Process the initialized model data (dcpp) for this variable
+            dcpp_data, _ = fnc.process_data(dcpp_data, variable)
