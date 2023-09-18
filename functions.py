@@ -662,7 +662,7 @@ def remove_years_with_nans(observed_data, dcpp_ensemble_mean, historical_ensembl
 
     return observed_data, dcpp_ensemble_mean, historical_ensemble_mean
 
-# Function for calculating the spatial correlations
+# Calculate correlations functions updated
 def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
     """
     Calculates the spatial correlations between the observed and model data.
@@ -682,7 +682,7 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
         rfield = np.empty([len(obs_lat), len(obs_lon)])
         pfield = np.empty([len(obs_lat), len(obs_lon)])
 
-        # Print the dimensions of the observed and model data
+        # #print the dimensions of the observed and model data
         print("observed data shape", np.shape(observed_data))
         print("model data shape", np.shape(model_data))
 
@@ -693,30 +693,53 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
                 obs = observed_data[:, y, x]
                 mod = model_data[:, y, x]
 
-                # print the obs and model data
+                # # Print the obs and model data
                 # print("observed data", obs)
                 # print("model data", mod)
+
+                # If all of the values in the obs and model data are NaN
+                if np.isnan(obs).all() or np.isnan(mod).all():
+                    # #print a warning
+                    # print("Warning: All NaN values detected in the data.")
+                    # print("Skipping this grid point.")
+                    # print("")
+
+                    # Set the correlation coefficient and p-value to NaN
+                    rfield[y, x], pfield[y, x] = np.nan, np.nan
+
+                    # Continue to the next grid point
+                    continue
+            
+                # If there are any NaN values in the obs or model data
+                if np.isnan(obs).any() or np.isnan(mod).any():
+                    # #print a warning
+                    print("Warning: NaN values detected in the data.")
+                    print("Setting rfield and pfield to NaN.")
+
+                    # Set the correlation coefficient and p-value to NaN
+                    rfield[y, x], pfield[y, x] = np.nan, np.nan
+
+                    # Continue to the next grid point
+                    continue
 
                 # Calculate the correlation coefficient and p-value
                 r, p = stats.pearsonr(obs, mod)
 
+                # #print the correlation coefficient and p-value
+                # #print("correlation coefficient", r)
+                # #print("p-value", p)
+
                 # If the correlation coefficient is negative, set the p-value to NaN
-                if r < 0:
-                    p = np.nan
+                # if r < 0:
+                    # p = np.nan
 
                 # Append the correlation coefficient and p-value to the arrays
                 rfield[y, x], pfield[y, x] = r, p
 
-        # Print the range of the correlation coefficients and p-values
+        # #print the range of the correlation coefficients and p-values
         # to 3 decimal places
-        print(f"Correlation coefficients range from {rfield.min():.3f} to {rfield.max():.3f}")
-        print(f"P-values range from {pfield.min():.3f} to {pfield.max():.3f}")
-
-        # print the correlation coefficients and p-values
-        # print("correlation coefficients", rfield)
-        # print("p-values", pfield)
-        # print shape of pfield
-        print("shape of pfield", np.shape(pfield))
+        #print(f"Correlation coefficients range from {rfield.min():.3f} to {rfield.max():.3f}")
+        #print(f"P-values range from {pfield.min():.3f} to {pfield.max():.3f}")
 
         # Return the correlation coefficients and p-values
         return rfield, pfield
