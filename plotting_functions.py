@@ -880,7 +880,7 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
                 nmembers_v = len(historical_data_v_model)
 
                 # Loop over the ensemble members
-                for member in range(nmembers):
+                for member in range(nmembers_v):
 
                     # Extract the ufield and vfield for this member
                     ufield, vfield = historical_data_u_model[member], historical_data_v_model[member]
