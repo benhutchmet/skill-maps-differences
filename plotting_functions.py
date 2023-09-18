@@ -1055,6 +1055,9 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
         # replace values in pfield that are greater than 0.05 with nan
         pfield_bs[pfield_bs > p_sig] = np.nan
 
+        # Where rfield is nan, set pfield to nan
+        pfield_bs[np.isnan(rfield_diff)] = np.nan
+
         # Add stippling where rfield is significantly different from zero
         ax.contourf(lons, lats, pfield_bs, hatches=['....'], alpha=0, transform=proj)
 
