@@ -1705,6 +1705,14 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     print("rfield_diff array shape", np.shape(rfield_diff))
     print("pfield_diff array shape", np.shape(pfield_diff))
 
+    # if the variable is ua va, has plev coordinates, then remove the plev coordinates
+    if variable in ["var131", "var132", "ua", "va", "wind"]:
+        print("Variable is ua or va")
+        print("removing the vertical level dimension")
+        # remove the vertical level dimension
+        dcpp_ensemble_members = dcpp_ensemble_members.squeeze()
+
+
     # print the shape of dcpp model years
     print("dcpp model years shape", np.shape(dcpp_model_years))
 
