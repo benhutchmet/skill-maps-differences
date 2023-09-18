@@ -162,6 +162,9 @@ def plot_correlations(model, rfield, pfield, obs, variable, region, season, fore
     # print the pfield
     # print("pfield mod", pfield)
 
+    # Where rfield is Nan, set pfield to Nan
+    pfield[np.isnan(rfield)] = np.nan
+
     # Add stippling where rfield is significantly different from zero
     plt.contourf(lons, lats, pfield, hatches=['....'], alpha=0, transform=ccrs.PlateCarree())
 
