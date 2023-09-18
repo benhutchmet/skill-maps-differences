@@ -1343,3 +1343,60 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
         ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
 
         # Add filled contours
+        clevs = np.arange(-1.0, 1.0, 0.1)
+        # Contour levels for the p-values
+        clevs_p = np.arange(0, 1.1, 0.1)
+        # Plot the filled contours
+        cf = ax.contourf(lons, lats, rfield_diff, clevs, cmap='RdBu_r', transform=proj, extend='both')
+
+        # INverse the stippling for tas, tos
+        if variable in ['tas', 'tos']:
+            # replace values in pfield that are less than 0.05 with nan
+            pfield[pfield < p_sig] = np.nan
+
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield, hatches=['xxxx'], alpha=0, transform=proj)
+
+        # Add stippling where rfield is significantly different from zero
+        ax.contourf(lons, lats, pfield_bs, hatches=['....'], alpha=0, transform=proj)
+
+        # replace values in pfield that are greater than 0.05 with nan
+        pfield_bs[pfield_bs > p_sig] = np.nan
+
+        # Where rfield is nan, set pfield to nan
+        pfield_bs[np.isnan(rfield_diff)] = np.nan
+
+        # Add a textbox with the variable name
+        ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Get the number of ensemble members for each model
+        dcpp_ensemble_members_count = sum(dcpp_ensemble_members_count.values())
+        historical_ensemble_members_count = sum(historical_ensemble_members_count.values())
+
+        # Add a textbox with the number of ensemble members
+        ax.text(0.05, 0.05,f"N = {dcpp_ensemble_members_count}, {historical_ensemble_members_count}", transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Add a textbox with the label
+        fig_letter = ax_labels[i]
+        ax.text(0.95, 0.05, fig_letter, transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', ha='right', bbox=dict(facecolor='white', alpha=0.5))
+
+        # Append the contourf object to the list
+        cf_list.append(cf)
+
+    # Create a single colorbar
+    cbar = plt.colorbar(cf_list[0], orientation='horizontal', pad=0.05, aspect=50, ax=fig.axes, shrink=0.8)
+    cbar.set_label('correlation coefficient differences (init - uninit)', fontsize=5)
+    cbar.ax.tick_params(labelsize=5, length=0)
+
+    # Set up the figure name
+    fig_name = f"{variables_list[0]}_{variables_list[1]}_{region}_{forecast_range}_{experiment}_correlation_coefficients_diff_subplots_{datetime.now().strftime('%Y%m%d_%H%M%S')}.png"
+
+    # Set up the figure path
+    fig_path = os.path.join(plots_dir, fig_name)
+
+    # Save the figure
+    plt.savefig(fig_path, dpi=300, bbox_inches='tight')
+
+    # Show the figure
+    plt.show()
+
