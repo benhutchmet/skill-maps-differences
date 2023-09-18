@@ -265,3 +265,5 @@ sfcWind_models_dcpp = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "HadGEM3-GC31-
 obs_ua_va = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694423850.2771118-29739-1-db661393-5c44-4603-87a8-2d7abee184d8.nc"
 
 historical_models_ua_va = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR" ,"FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "NorCPM1"]
+
+historical_models_ua_va_noEC = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "MPI-ESM1-2-LR" ,"FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "NorCPM1"]
