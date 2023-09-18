@@ -712,9 +712,9 @@ def calculate_correlations(observed_data, model_data, obs_lat, obs_lon):
             
                 # If there are any NaN values in the obs or model data
                 if np.isnan(obs).any() or np.isnan(mod).any():
-                    # #print a warning
-                    print("Warning: NaN values detected in the data.")
-                    print("Setting rfield and pfield to NaN.")
+                    # # #print a warning
+                    # print("Warning: NaN values detected in the data.")
+                    # print("Setting rfield and pfield to NaN.")
 
                     # Set the correlation coefficient and p-value to NaN
                     rfield[y, x], pfield[y, x] = np.nan, np.nan
@@ -1605,8 +1605,8 @@ def calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean, lats,
 
             # If all of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
             if np.isnan(obs).all() or np.isnan(mod).all():
-                print("Warning: All values are NaNs")
-                print("Setting correlation coefficient and p-value to NaN")
+                # print("Warning: All values are NaNs")
+                # print("Setting correlation coefficient and p-value to NaN")
                 rfield[y, x] = np.nan
                 pfield[y, x] = np.nan
 
@@ -1615,8 +1615,8 @@ def calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean, lats,
 
             # If some of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
             if np.isnan(obs).any() or np.isnan(mod).any():
-                print("Warning: Some values are NaNs")
-                print("Setting correlation coefficient and p-value to NaN")
+                # print("Warning: Some values are NaNs")
+                # print("Setting correlation coefficient and p-value to NaN")
                 rfield[y, x] = np.nan
                 pfield[y, x] = np.nan
 
