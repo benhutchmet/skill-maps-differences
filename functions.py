@@ -1603,25 +1603,25 @@ def calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean, lats,
             obs = n_mask_observed_data[:, y, x]
             mod = ensemble_mean[:, y, x]
 
-            # If all of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
-            if np.isnan(obs).all() or np.isnan(mod).all():
-                print("Warning: All values are NaNs")
-                print("Setting correlation coefficient and p-value to NaN")
-                rfield[y, x] = np.nan
-                pfield[y, x] = np.nan
+            # # If all of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
+            # if np.isnan(obs).all() or np.isnan(mod).all():
+            #     print("Warning: All values are NaNs")
+            #     print("Setting correlation coefficient and p-value to NaN")
+            #     rfield[y, x] = np.nan
+            #     pfield[y, x] = np.nan
 
-                # Continue to the next iteration of the loop
-                continue
+            #     # Continue to the next iteration of the loop
+            #     continue
 
-            # If some of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
-            if np.isnan(obs).any() or np.isnan(mod).any():
-                print("Warning: Some values are NaNs")
-                print("Setting correlation coefficient and p-value to NaN")
-                rfield[y, x] = np.nan
-                pfield[y, x] = np.nan
+            # # If some of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
+            # if np.isnan(obs).any() or np.isnan(mod).any():
+            #     print("Warning: Some values are NaNs")
+            #     print("Setting correlation coefficient and p-value to NaN")
+            #     rfield[y, x] = np.nan
+            #     pfield[y, x] = np.nan
 
-                # Continue to the next iteration of the loop
-                continue
+            #     # Continue to the next iteration of the loop
+            #     continue
 
             # Calculate the correlation coefficient and p-value
             r, p = stats.pearsonr(obs, mod)
@@ -1675,7 +1675,6 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     print("dcpp model data shape", np.shape(dcpp_ensemble_members))
     print("historical model data shape", np.shape(historical_ensemble_members))
 
-    # FIXME: These are the wrong types for test case
     # # Check if there are any NaNs in the observed data
     # if np.isnan(observed_data).any():
     #     raise ValueError("Observed data contains NaNs.")
@@ -1688,7 +1687,6 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
     # if np.isnan(historical_ensemble_members).any():
     #     raise ValueError("Historical model data contains NaNs.")
 
-    # FIXME: Shape of dcpp_ensemble_members is wrong for test case
     # # Check that the shapes are correct
     # dcpp_model_data_shape = dcpp_ensemble_members[0, :, :, :]
     # historical_model_data_shape = historical_ensemble_members[0, :, :, :]
