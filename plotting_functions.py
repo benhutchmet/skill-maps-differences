@@ -1145,7 +1145,8 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
     pfield_list = []
 
     # Create an empty list to store the ensemble members count
-    ensemble_members_count_list = []
+    dcpp_ensemble_members_count_list = []
+    historical_ensemble_members_count_list = []
 
     # LIsts for the obs_lons_converted and lons_converted
     obs_lons_converted_list = []
@@ -1218,6 +1219,8 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
             # Calculate the wind speed from the u and v components
             dcpp_data_ws = fnc.calculate_dcpp_data_ws(dcpp_models, dcpp_data_u, dcpp_data_v)
 
+            # Assign the dcpp and historical data to the wind speed data
+            dcpp_data, historical_data = dcpp_data_ws, historical_data_ws
         else:
             print("Calculating the spatial correlations for:", variable)
 
@@ -1238,3 +1241,105 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
                                             model_season)
             # Process the initialized model data (dcpp) for this variable
             dcpp_data, _ = fnc.process_data(dcpp_data, variable)
+        
+        # Append the processed observations to the list
+        obs_list.append(obs)
+
+        # Calculate the difference in correlations
+        # using the calculate_spatial_correlations_diff function
+        rfield_diff, sign_regions, obs_lons_converted, lons_converted, observed_data, \
+        dcpp_ensemble_mean, historical_ensemble_mean, dcpp_ensemble_members_count, \
+        historical_ensemble_members_count = fnc.calculate_spatial_correlations_diff(obs, dcpp_data, historical_data,
+                                                                                    dcpp_models, historical_models,
+                                                                                    variable)
+        
+        # Append the rfield_diff to the list
+        rfield_diff_list.append(rfield_diff)
+
+        # Get the bootstrapped pfield
+        # using the calculate_spatial_correlations_bootstrapp_diff function
+        pfield_diff_bs = fnc.calculate_spatial_correlations_bootstrap_diff(obs, dcpp_data, historical_data,
+                                                                            dcpp_models, historical_models,
+                                                                            variable, n_bootstraps)
+        
+        # Append the pfield_diff_bs to the list
+        pfield_list.append(pfield_diff_bs)
+
+        # Append the ensemble members count to the list
+        dcpp_ensemble_members_count_list.append(dcpp_ensemble_members_count)
+        historical_ensemble_members_count_list.append(historical_ensemble_members_count)
+
+        # Append the obs_lons_converted and lons_converted to the lists
+        obs_lons_converted_list.append(obs_lons_converted)
+        lons_converted_list.append(lons_converted)
+    
+    # Set the font size for the plots
+    # and the projection to be used
+    plt.rcParams.update({'font.size': 12})
+    proj = ccrs.PlateCarree()
+
+    # Set up the lats and lons for the azores grid
+    azores_lon1, azores_lon2 = azores_grid['lon1'], azores_grid['lon2']
+    azores_lat1, azores_lat2 = azores_grid['lat1'], azores_grid['lat2']
+
+    # Set up the lats and lons for the iceland grid
+    iceland_lon1, iceland_lon2 = iceland_grid['lon1'], iceland_grid['lon2']
+    iceland_lat1, iceland_lat2 = iceland_grid['lat1'], iceland_grid['lat2']
+
+    # subtract 180 from all of the azores and iceland lons
+    azores_lon1, azores_lon2 = azores_lon1 - 180, azores_lon2 - 180
+    iceland_lon1, iceland_lon2 = iceland_lon1 - 180, iceland_lon2 - 180
+
+    # Set up the fgure size and subplot parameters
+    # for a 2x2 grid of subplots
+    fig, axs = plt.subplots(nrows=2, ncols=2, figsize=(10, 8), subplot_kw={'projection': proj}, gridspec_kw={'wspace': 0.1, 'hspace': 0.1})
+
+    # Set up the title for the figure
+    title = f"{variables_list[0]} - {variables_list[1]} {region} {forecast_range} {experiment} correlation coefficients, p < {p_sig} ({int((1 - p_sig) * 100)}%)"
+
+    # Set up the supertitle for the figure
+    fig.suptitle(title, fontsize=12, y=0.90)
+
+    # Set up the significance thresholdf
+    # e.g. 0.05 for 95% significance
+    sig_threshold = int((1 - p_sig) * 100)
+
+    # Create a list to store the contourf objects
+    cf_list = []
+
+    # Loop over the variables
+    for i, variable in enumerate(variables_list):
+        # Print the variable being plotted
+        print("Plotting variable:", variable)
+
+        # Extract the obs
+        obs = obs_list[i]
+        
+        # Extract the rfield_diff and pfield
+        rfield_diff, pfield_bs = rfield_diff_list[i], pfield_list[i]
+
+        # Extract the obs_lons_converted and lons_converted
+        obs_lons_converted, lons_converted = obs_lons_converted_list[i], lons_converted_list[i]
+
+        # Set up the converted lons
+        lons_converted = lons_converted - 180
+
+        # Extract the ensemble members count
+        dcpp_ensemble_members_count = dcpp_ensemble_members_count_list[i]
+        historical_ensemble_members_count = historical_ensemble_members_count_list[i]
+
+        # Set up the lats and lons
+        lats = obs.lat
+        lons = lons_converted
+
+        # Set up the axes
+        ax = axs.flatten()[i]
+
+        # Add coastlines
+        ax.coastlines()
+
+        # Add greenlines outlining the Azores and Iceland grids
+        ax.plot([azores_lon1, azores_lon2, azores_lon2, azores_lon1, azores_lon1], [azores_lat1, azores_lat1, azores_lat2, azores_lat2, azores_lat1], color='green', linewidth=2, transform=proj)
+        ax.plot([iceland_lon1, iceland_lon2, iceland_lon2, iceland_lon1, iceland_lon1], [iceland_lat1, iceland_lat1, iceland_lat2, iceland_lat2, iceland_lat1], color='green', linewidth=2, transform=proj)
+
+        # Add filled contours
