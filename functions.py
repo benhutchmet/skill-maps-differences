@@ -2163,9 +2163,11 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # for given variable
         obs_dataset = regrid_and_select_region(observations_path, region, obs_var_name)
 
-        # Check for NaN values in the observations dataset
-        # print("Checking for NaN values in obs_dataset")
-        # check_for_nan_values(obs_dataset)
+        # Select the plev if variable is ua or va
+        if variable in ["ua", "va"]:
+            # Use xarray to select the plev=85000 level
+            print("Selecting plev=85000 level for observations dataset")
+            obs_dataset = obs_dataset.sel(plev=85000)
 
         # Select the season
         # --- Although will already be in DJFM format, so don't need to do this ---
