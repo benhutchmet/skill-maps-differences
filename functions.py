@@ -1665,15 +1665,15 @@ def calculate_spatial_correlations_bootstrap_diff(observed_data, dcpp_model_data
         historical_model_years, obs_years, dcpp_ensemble_members_count, historical_ensemble_members_count \
             = process_model_data_for_plot_diff(dcpp_model_data, historical_model_data, dcpp_models, historical_models, observed_data)
 
-    # Print the types of the observed and model data
-    print("observed data type", type(observed_data))
-    print("dcpp model data type", type(dcpp_ensemble_members))
-    print("historical model data type", type(historical_ensemble_members))
+    # # Print the types of the observed and model data
+    # print("observed data type", type(observed_data))
+    # print("dcpp model data type", type(dcpp_ensemble_members))
+    # print("historical model data type", type(historical_ensemble_members))
 
-    # Print the shapes of the observed and model data
-    print("observed data shape", np.shape(observed_data))
-    print("dcpp model data shape", np.shape(dcpp_ensemble_members))
-    print("historical model data shape", np.shape(historical_ensemble_members))
+    # # Print the shapes of the observed and model data
+    # print("observed data shape", np.shape(observed_data))
+    # print("dcpp model data shape", np.shape(dcpp_ensemble_members))
+    # print("historical model data shape", np.shape(historical_ensemble_members))
 
     # # Check if there are any NaNs in the observed data
     # if np.isnan(observed_data).any():
