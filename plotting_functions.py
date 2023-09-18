@@ -917,8 +917,8 @@ def plot_seasonal_correlations_diff(observations_path, historical_models, dcpp_m
                     # Append the wind speed to the list
                     dcpp_data_ws[model].append(ws)
 
-            # Set up the obs var name
-            variable = "850_ws"
+            # # Set up the obs var name
+            # variable = "850_ws"
 
             # Set the dcpp and historical data to the wind speed data
             dcpp_data, historical_data = dcpp_data_ws, historical_data_ws
