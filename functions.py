@@ -1603,6 +1603,16 @@ def calculate_correlation_coefficient(n_mask_observed_data, ensemble_mean, lats,
             obs = n_mask_observed_data[:, y, x]
             mod = ensemble_mean[:, y, x]
 
+            # If all of the values in the obs or model data are NaNs, set the correlation coefficient and p-value to NaN
+            if np.isnan(obs).all() or np.isnan(mod).all():
+                print("Warning: All values are NaNs")
+                print("Setting correlation coefficient and p-value to NaN")
+                rfield[y, x] = np.nan
+                pfield[y, x] = np.nan
+
+                # Continue to the next iteration of the loop
+                continue
+
             # Calculate the correlation coefficient and p-value
             r, p = stats.pearsonr(obs, mod)
 
