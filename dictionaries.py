@@ -267,3 +267,11 @@ obs_ua_va = "/gws/nopw/j04/canari/users/benhutch/ERA5/adaptor.mars.internal-1694
 historical_models_ua_va = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "EC-Earth3", "MPI-ESM1-2-LR" ,"FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "NorCPM1"]
 
 historical_models_ua_va_noEC = ["BCC-CSM2-MR", "MPI-ESM1-2-HR", "CanESM5", "CMCC-CM2-SR5", "HadGEM3-GC31-MM", "MPI-ESM1-2-LR" ,"FGOALS-f3-L", "MIROC6", "IPSL-CM6A-LR", "NorCPM1"]
+
+# for the new set of variables subplots
+variables_list_updated = [ "psl", "tas", "wind", "rsds" ]
+dcpp_models_list_updated = [ common_models, common_models, common_models, common_models_noCMCC ]
+historical_models_list_updated = [ psl_models, tas_models_noEC, historical_models_ua_va_noEC, rsds_models ]
+
+# Updates obs var names
+obs_var_names_updated = ["psl", "tas", "wind", "rsds"]
