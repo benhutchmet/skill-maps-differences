@@ -1879,8 +1879,18 @@ def calculate_spatial_correlations_diff(observed_data, dcpp_model_data, historic
 
     # Check that all of these have the same shape
     if observed_data_array.shape != dcpp_ensemble_mean_array.shape != historical_ensemble_mean_array.shape:
-        raise ValueError("Observed data and ensemble mean must have the same shape.")
-        sys.exit(1)
+        print("Observed data and model mean must have the same shape.")
+        print("variable", variable)
+        print("observed data shape", observed_data_array.shape)
+        print("dcpp ensemble mean shape", dcpp_ensemble_mean_array.shape)
+        print("historical ensemble mean shape", historical_ensemble_mean_array.shape)
+        # if the variable is ua or va, then the shape of the model data is different
+        if variable in ["var131", "var132", "ua", "va", "wind"]:
+            print("Variable is ua or va")
+            print("removing the vertical level dimension")
+            # remove the vertical level dimension
+            dcpp_ensemble_mean_array = dcpp_ensemble_mean_array.squeeze()
+            historical_ensemble_mean_array = historical_ensemble_mean_array.squeeze()
     
     # Set up the arrays for calculating correlations
     obs = observed_data_array
