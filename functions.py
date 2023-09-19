@@ -2390,7 +2390,7 @@ def process_observations(variable, region, region_grid, forecast_range, season, 
         # where the model would show the DJFM average as Jan 1963 (s1961)
         # the observations would show the DJFM average as Dec 1962
         # so we need to shift the observations to the following year
-        if forecast_range == "2-2":
+        if forecast_range == "2-2" and season == "DJFM":
             obs_anomalies_annual_forecast_range = obs_anomalies_annual_forecast_range.shift(time=1)
 
 
