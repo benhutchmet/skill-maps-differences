@@ -1374,7 +1374,7 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
         historical_ensemble_members_count = sum(historical_ensemble_members_count.values())
 
         # Add a textbox with the number of ensemble members
-        ax.text(0.05, 0.05,f"N = {dcpp_ensemble_members_count}, {historical_ensemble_members_count}", transform=ax.transAxes, fontsize=12, fontweight='bold', va='bottom', bbox=dict(facecolor='white', alpha=0.5))
+        ax.text(0.05, 0.05,f"N = {dcpp_ensemble_members_count}, {historical_ensemble_members_count}", transform=ax.transAxes, fontsize=8, fontweight='bold', va='bottom', bbox=dict(facecolor='white', alpha=0.5))
 
         # Add a textbox with the label
         fig_letter = ax_labels[i]
