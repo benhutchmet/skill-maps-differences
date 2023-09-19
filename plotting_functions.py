@@ -1229,14 +1229,14 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
                                             obs_season, observations_path, obs_var_name)
             
             # Load and process the uninitialized model data (historical) for this variable
-            historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models_list,
+            historical_data = fnc.load_processed_historical_data(dic.base_dir_historical, historical_models,
                                                                     variable, region, forecast_range,
                                                                         model_season)
             # Process the uninitialized model data (historical) for this variable
             historical_data, _ = fnc.extract_historical_data(historical_data, variable)
 
             # Load and process the initialized model data (dcpp) for this variable
-            dcpp_data = fnc.load_data(dic.dcpp_base_dir, dcpp_models_list,
+            dcpp_data = fnc.load_data(dic.dcpp_base_dir, dcpp_models,
                                         variable, region, forecast_range,
                                             model_season)
             # Process the initialized model data (dcpp) for this variable
