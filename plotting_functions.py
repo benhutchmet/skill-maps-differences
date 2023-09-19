@@ -1352,19 +1352,19 @@ def plot_variable_correlations_diff(observations_path, wind_obs_path, historical
         # INverse the stippling for tas, tos
         if variable in ['tas', 'tos']:
             # replace values in pfield that are less than 0.05 with nan
-            pfield[pfield < p_sig] = np.nan
+            pfield_bs[pfield_bs < p_sig] = np.nan
 
             # Add stippling where rfield is significantly different from zero
-            ax.contourf(lons, lats, pfield, hatches=['xxxx'], alpha=0, transform=proj)
+            ax.contourf(lons, lats, pfield_bs, hatches=['xxxx'], alpha=0, transform=proj)
+        else:
+            # replace values in pfield that are greater than 0.05 with nan
+            pfield_bs[pfield_bs > p_sig] = np.nan
 
-        # Add stippling where rfield is significantly different from zero
-        ax.contourf(lons, lats, pfield_bs, hatches=['....'], alpha=0, transform=proj)
+            # Where rfield is nan, set pfield to nan
+            pfield_bs[np.isnan(rfield_diff)] = np.nan
 
-        # replace values in pfield that are greater than 0.05 with nan
-        pfield_bs[pfield_bs > p_sig] = np.nan
-
-        # Where rfield is nan, set pfield to nan
-        pfield_bs[np.isnan(rfield_diff)] = np.nan
+            # Add stippling where rfield is significantly different from zero
+            ax.contourf(lons, lats, pfield_bs, hatches=['....'], alpha=0, transform=proj)
 
         # Add a textbox with the variable name
         ax.text(0.05, 0.95, variable, transform=ax.transAxes, fontsize=12, fontweight='bold', va='top', bbox=dict(facecolor='white', alpha=0.5))
