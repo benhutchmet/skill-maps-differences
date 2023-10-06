@@ -29,7 +29,7 @@ cdo = Cdo()
 
 # Import the dictionaries
 import dictionaries as dic
-import functions as fnc
+import functions_diff as fnc
 
 # Plot the correlation coefficients and p-values for the multi-model mean
 def plot_correlations(model, rfield, pfield, obs, variable, region, season, forecast_range, plots_dir, obs_lons_converted, lons_converted, azores_grid, iceland_grid, uk_n_box, uk_s_box, p_sig=0.05, experiment=None, observed_data=None, ensemble_members_count=None):
